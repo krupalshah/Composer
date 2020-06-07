@@ -1,9 +1,11 @@
 package com.krupalshah.composer;
 
+import com.krupalshah.composer.function.BiFunction;
+import com.krupalshah.composer.function.Consumer;
+import com.krupalshah.composer.function.Function;
+import com.krupalshah.composer.function.Supplier;
+
 import java.util.Iterator;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public interface Composer<In> {
 
@@ -13,7 +15,7 @@ public interface Composer<In> {
 
     <Element> Composer<Element> stream(Function<In, Iterator<Element>> iteratorSupplier);
 
-    <Out extends Iterable<In>> Composer<Out> collect(Function<In, Out> accumulator);
+    <Out extends Iterable<In>> Composer<Out> collect(Supplier<Out> accumulator);
 
     <Ex extends Exception> void execute(Consumer<In> resultConsumer, Consumer<Ex> exceptionConsumer);
 }
