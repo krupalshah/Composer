@@ -1,21 +1,46 @@
 package com.krupalshah.composer;
 
 import com.krupalshah.composer.function.BiFunction;
+import com.krupalshah.composer.function.Callable;
 import com.krupalshah.composer.function.Consumer;
 import com.krupalshah.composer.function.Function;
 import com.krupalshah.composer.function.Supplier;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-public interface Composer<In> {
 
-    <Out> Composer<Out> then(Function<In, Out> asyncOperation);
+public class Composer<In> implements Composable<In> {
 
-    <Out, Combined> Composer<Combined> with(Function<In, Out> asyncOperation, BiFunction<In, Out, Combined> combiner);
+    private static List<Object> operations = new ArrayList<>();
 
-    <Element> Composer<Element> stream(Function<In, Iterator<Element>> iteratorSupplier);
+    public static <Out> Composable<Out> compose(Callable<Out> asyncOperation) {
+        return null;
+    }
 
-    <Out extends Iterable<In>> Composer<Out> collect(Supplier<Out> accumulator);
+    @Override
+    public <Out> Composable<Out> then(Function<In, Out> asyncOperation) {
+        return null;
+    }
 
-    <Ex extends Exception> void execute(Consumer<In> resultConsumer, Consumer<Ex> exceptionConsumer);
+    @Override
+    public <Out, Combined> Composable<Combined> with(Function<In, Out> asyncOperation, BiFunction<In, Out, Combined> combiner) {
+        return null;
+    }
+
+    @Override
+    public <Element> Composable<Element> stream(Function<In, Iterator<Element>> iteratorSupplier) {
+        return null;
+    }
+
+    @Override
+    public <Out extends Iterable<In>> Composable<Out> collect(Supplier<Out> accumulator) {
+        return null;
+    }
+
+    @Override
+    public <Ex extends Exception> void execute(Consumer<In> resultConsumer, Consumer<Ex> exceptionConsumer) {
+
+    }
 }
