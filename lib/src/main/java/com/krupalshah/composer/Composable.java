@@ -1,21 +1,27 @@
 package com.krupalshah.composer;
 
+
 import com.krupalshah.composer.function.BiFunction;
-import com.krupalshah.composer.function.Consumer;
 import com.krupalshah.composer.function.Function;
-import com.krupalshah.composer.function.Supplier;
+import com.krupalshah.composer.function.Predicate;
+import com.krupalshah.composer.function.TriFunction;
 
-import java.util.Iterator;
+import java.util.concurrent.Callable;
 
-public interface Composable<In> {
 
-    <Out> Composable<Out> then(Function<In, Out> asyncOperation);
+public interface Composable<T> {
 
-    <Out, Combined> Composable<Combined> with(Function<In, Out> asyncOperation, BiFunction<In, Out, Combined> combiner);
+    <R> Composable<R> thenCall(Callable<R> task);
 
-    <Element> Composable<Element> stream(Function<In, Iterator<Element>> iteratorSupplier);
+    <S, U, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, BiFunction<S, U, R> resultCombiner);
 
-    <Out extends Iterable<In>> Composable<Out> collect(Supplier<Out> accumulator);
+    <S, U, V, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, Callable<V> task3, TriFunction<S, U, V, R> resultCombiner);
 
-    <Ex extends Exception> void execute(Consumer<In> resultConsumer, Consumer<Ex> exceptionConsumer);
+    <R> Composable<R> thenProcess(Function<T, R> processor);
+
+    Composable<T> thenRun(Runnable task);
+
+    Composable<T> thenCheck(Predicate<T> validator);
+
+    T listen();
 }
