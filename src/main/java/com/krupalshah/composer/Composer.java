@@ -43,8 +43,8 @@ public class Composer<T> implements Composable<T> {
             awaitResult();
 
             CountDownLatch latch = newLatch(2);
-            Future<S> future1 = executorService.submit(() -> countDownTaskWrapper(firstTask, latch));
-            Future<U> future2 = executorService.submit(() -> countDownTaskWrapper(secondTask, latch));
+            Future<S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
             S s = future1.get();
             U u = future2.get();
             latch.await();
@@ -60,9 +60,9 @@ public class Composer<T> implements Composable<T> {
             awaitResult();
 
             CountDownLatch latch = newLatch(3);
-            Future<S> future1 = executorService.submit(() -> countDownTaskWrapper(firstTask, latch));
-            Future<U> future2 = executorService.submit(() -> countDownTaskWrapper(secondTask, latch));
-            Future<V> future3 = executorService.submit(() -> countDownTaskWrapper(thirdTask, latch));
+            Future<S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
+            Future<V> future3 = executorService.submit(() -> latchWrappedTask(thirdTask, latch));
             S s = future1.get();
             U u = future2.get();
             V v = future3.get();
@@ -151,7 +151,7 @@ public class Composer<T> implements Composable<T> {
         return this.future.get();
     }
 
-    private <R> R countDownTaskWrapper(Callable<R> task, CountDownLatch latch) throws Exception {
+    private <R> R latchWrappedTask(Callable<R> task, CountDownLatch latch) throws Exception {
         try {
             return task.call();
         } finally {
