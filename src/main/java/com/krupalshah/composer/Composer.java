@@ -38,12 +38,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, BiFunction<S, U, R> resultCombiner) {
+    public <S, U, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, BiFunction<S, U, R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
             CountDownLatch latch = newLatch(2);
-            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(task1, latch));
-            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(task2, latch));
+            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(firstTask, latch));
+            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(secondTask, latch));
             latch.await();
             S s = future1.get();
             U u = future2.get();
@@ -53,13 +53,13 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, Callable<V> task3, TriFunction<S, U, V, R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, Callable<V> thirdTask, TriFunction<S, U, V, R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
             CountDownLatch latch = newLatch(3);
-            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(task1, latch));
-            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(task2, latch));
-            Future<V> future3 = executeAsync(() -> countDownTaskWrapper(task3, latch));
+            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(firstTask, latch));
+            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(secondTask, latch));
+            Future<V> future3 = executeAsync(() -> countDownTaskWrapper(thirdTask, latch));
             latch.await();
             S s = future1.get();
             U u = future2.get();
@@ -128,7 +128,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     private <R> Composer<R> newComposer(Future<R> resultFuture) {
-        return new Composer<>(resultFuture, errConsumer, executorService);
+        return new Composer<>(resultFuture, this.errConsumer, this.executorService);
     }
 
     private CountDownLatch newLatch(int nTasks) {

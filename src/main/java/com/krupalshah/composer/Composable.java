@@ -13,9 +13,9 @@ public interface Composable<T> {
 
     <R> Composable<R> thenCall(Callable<R> task);
 
-    <S, U, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, BiFunction<S, U, R> resultCombiner);
+    <S, U, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, BiFunction<S, U, R> resultCombiner);
 
-    <S, U, V, R> Composable<R> thenCallTogether(Callable<S> task1, Callable<U> task2, Callable<V> task3, TriFunction<S, U, V, R> resultCombiner);
+    <S, U, V, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, Callable<V> thirdTask, TriFunction<S, U, V, R> resultCombiner);
 
     <R> Composable<R> thenProcess(Function<T, R> processor);
 
