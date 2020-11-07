@@ -3,9 +3,9 @@ An easy way to compose interdependent concurrent I/O streams
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 
-<img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
-
 Composer helps you to compose chains of interdependent input/output operations such as webservice calls, database read/writes and file I/O with concurrency support using java.util.concurrent APIs. It is compatible with Java 8+ and Android.
+
+<img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
 ### Download
 
