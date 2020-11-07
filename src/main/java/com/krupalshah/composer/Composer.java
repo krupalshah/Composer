@@ -97,7 +97,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             awaitResult();
             task.run();
-            return switchTo(this.future);
+            return this;
         });
     }
 
@@ -106,7 +106,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             T t = awaitResult();
             if (validator.test(t)) {
-                return switchTo(this.future);
+                return this;
             } else {
                 errConsumer.accept(new ComposeException(String.format("The upstream result %s " +
                         "is not valid as per the validator provided! Downstream execution will stop now.", t)));
