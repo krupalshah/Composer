@@ -48,13 +48,13 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, BiFunction<S, U, R> resultCombiner) {
+    public <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
 
             CountDownLatch latch = newLatch(2);
-            Future<S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
-            Future<U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
+            Future<? extends S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<? extends U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
             S s = future1.get();
             U u = future2.get();
             latch.await();
@@ -65,14 +65,14 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, Callable<V> thirdTask, TriFunction<S, U, V, R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
 
             CountDownLatch latch = newLatch(3);
-            Future<S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
-            Future<U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
-            Future<V> future3 = executorService.submit(() -> latchWrappedTask(thirdTask, latch));
+            Future<? extends S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<? extends U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
+            Future<? extends V> future3 = executorService.submit(() -> latchWrappedTask(thirdTask, latch));
             S s = future1.get();
             U u = future2.get();
             V v = future3.get();
@@ -102,16 +102,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <R> Composable<R> thenProcess(Function<T, R> processor) {
-        return chainWith(() -> {
-            T t = awaitResult();
-            Future<R> future = executorService.submit(() -> processor.apply(t));
-            return newComposer(future);
-        });
-    }
-
-    @Override
-    public Composable<T> thenCheck(Predicate<T> validator) {
+    public Composable<T> thenCheck(Predicate<? super T> validator) {
         return chainWith(() -> {
             T t = awaitResult();
             if (validator.test(t)) {
@@ -121,6 +112,15 @@ public class Composer<T> implements Composable<T> {
                         "is not valid as per the validator provided! Downstream execution will stop now.", t)));
                 return newComposer(null);
             }
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenProcess(Function<? super T, ? extends R> processor) {
+        return chainWith(() -> {
+            T t = awaitResult();
+            Future<R> future = executorService.submit(() -> processor.apply(t));
+            return newComposer(future);
         });
     }
 

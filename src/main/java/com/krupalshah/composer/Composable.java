@@ -13,17 +13,17 @@ public interface Composable<T> {
 
     <R> Composable<R> thenCall(Callable<R> task);
 
-    <S, U, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, BiFunction<S, U, R> resultCombiner);
+    <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
 
-    <S, U, V, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, Callable<V> thirdTask, TriFunction<S, U, V, R> resultCombiner);
+    <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
 
     Composable<T> thenExecute(Runnable task);
 
     Composable<T> thenRunSynchronously(Runnable task);
 
-    Composable<T> thenCheck(Predicate<T> validator);
+    Composable<T> thenCheck(Predicate<? super T> validator);
 
-    <R> Composable<R> thenProcess(Function<T, R> processor);
+    <R> Composable<R> thenProcess(Function<? super T, ? extends R> processor);
 
     T listen();
 }
