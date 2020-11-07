@@ -32,7 +32,7 @@ public class Composer<T> implements Composable<T> {
     public <R> Composable<R> thenCall(Callable<R> task) {
         return chainWith(() -> {
             awaitResult();
-            Future<R> future = executeAsync(task);
+            Future<R> future = executorService.submit(task);
             return newComposer(future);
         });
     }
@@ -41,13 +41,15 @@ public class Composer<T> implements Composable<T> {
     public <S, U, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, BiFunction<S, U, R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
+
             CountDownLatch latch = newLatch(2);
-            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(firstTask, latch));
-            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(secondTask, latch));
-            latch.await();
+            Future<S> future1 = executorService.submit(() -> countDownTaskWrapper(firstTask, latch));
+            Future<U> future2 = executorService.submit(() -> countDownTaskWrapper(secondTask, latch));
             S s = future1.get();
             U u = future2.get();
-            Future<R> resultFuture = executeAsync(() -> resultCombiner.apply(s, u));
+            latch.await();
+
+            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u));
             return newComposer(resultFuture);
         });
     }
@@ -56,38 +58,45 @@ public class Composer<T> implements Composable<T> {
     public <S, U, V, R> Composable<R> thenCallTogether(Callable<S> firstTask, Callable<U> secondTask, Callable<V> thirdTask, TriFunction<S, U, V, R> resultCombiner) {
         return chainWith(() -> {
             awaitResult();
+
             CountDownLatch latch = newLatch(3);
-            Future<S> future1 = executeAsync(() -> countDownTaskWrapper(firstTask, latch));
-            Future<U> future2 = executeAsync(() -> countDownTaskWrapper(secondTask, latch));
-            Future<V> future3 = executeAsync(() -> countDownTaskWrapper(thirdTask, latch));
-            latch.await();
+            Future<S> future1 = executorService.submit(() -> countDownTaskWrapper(firstTask, latch));
+            Future<U> future2 = executorService.submit(() -> countDownTaskWrapper(secondTask, latch));
+            Future<V> future3 = executorService.submit(() -> countDownTaskWrapper(thirdTask, latch));
             S s = future1.get();
             U u = future2.get();
             V v = future3.get();
-            Future<R> resultFuture = executeAsync(() -> resultCombiner.apply(s, u, v));
+            latch.await();
+
+            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u, v));
             return newComposer(resultFuture);
         });
     }
 
+    @Override
+    public Composable<T> thenExecute(Runnable task) {
+        return chainWith(() -> {
+            T t = awaitResult();
+            Future<T> resultFuture = executorService.submit(task, t);
+            return newComposer(resultFuture);
+        });
+    }
+
+    @Override
+    public Composable<T> thenRunSynchronously(Runnable task) {
+        return chainWith(() -> {
+            awaitResult();
+            task.run();
+            return newComposer(this.future);
+        });
+    }
 
     @Override
     public <R> Composable<R> thenProcess(Function<T, R> processor) {
         return chainWith(() -> {
             T t = awaitResult();
-            Future<R> future = executeAsync(() -> processor.apply(t));
+            Future<R> future = executorService.submit(() -> processor.apply(t));
             return newComposer(future);
-        });
-    }
-
-    @Override
-    public Composable<T> thenRun(Runnable task) {
-        return chainWith(() -> {
-            T t = awaitResult();
-            Future<T> resultFuture = executeAsync(() -> {
-                task.run();
-                return t;
-            });
-            return newComposer(resultFuture);
         });
     }
 
@@ -133,10 +142,6 @@ public class Composer<T> implements Composable<T> {
 
     private CountDownLatch newLatch(int nTasks) {
         return new CountDownLatch(nTasks);
-    }
-
-    private <R> Future<R> executeAsync(Callable<R> task) {
-        return executorService.submit(task);
     }
 
     private T awaitResult() throws InterruptedException, ExecutionException {
