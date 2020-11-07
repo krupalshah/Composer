@@ -28,6 +28,16 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
+    public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer, ExecutorService executorService) {
+        try {
+            Future<R> future = executorService.submit(task);
+            return new Composer<>(future, errConsumer, executorService);
+        } catch (Throwable t) {
+            errConsumer.accept(t);
+            return new Composer<>(null, errConsumer, executorService);
+        }
+    }
+
     @Override
     public <R> Composable<R> thenCall(Callable<R> task) {
         return chainWith(() -> {
