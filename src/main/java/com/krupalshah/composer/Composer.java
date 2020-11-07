@@ -43,7 +43,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             awaitResult();
             Future<R> future = executorService.submit(task);
-            return newComposer(future);
+            return switchTo(future);
         });
     }
 
@@ -60,7 +60,7 @@ public class Composer<T> implements Composable<T> {
             latch.await();
 
             Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u));
-            return newComposer(resultFuture);
+            return switchTo(resultFuture);
         });
     }
 
@@ -79,7 +79,7 @@ public class Composer<T> implements Composable<T> {
             latch.await();
 
             Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u, v));
-            return newComposer(resultFuture);
+            return switchTo(resultFuture);
         });
     }
 
@@ -88,7 +88,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             T t = awaitResult();
             Future<T> resultFuture = executorService.submit(task, t);
-            return newComposer(resultFuture);
+            return switchTo(resultFuture);
         });
     }
 
@@ -97,7 +97,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             awaitResult();
             task.run();
-            return newComposer(this.future);
+            return switchTo(this.future);
         });
     }
 
@@ -106,11 +106,11 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             T t = awaitResult();
             if (validator.test(t)) {
-                return newComposer(this.future);
+                return switchTo(this.future);
             } else {
                 errConsumer.accept(new ComposeException(String.format("The upstream result %s " +
                         "is not valid as per the validator provided! Downstream execution will stop now.", t)));
-                return newComposer(null);
+                return switchTo(null);
             }
         });
     }
@@ -120,7 +120,7 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             T t = awaitResult();
             Future<R> future = executorService.submit(() -> processor.apply(t));
-            return newComposer(future);
+            return switchTo(future);
         });
     }
 
@@ -137,19 +137,19 @@ public class Composer<T> implements Composable<T> {
         return new Composer<>(future, errConsumer, executorService);
     }
 
-    private <R> Composer<R> newComposer(Future<R> resultFuture) {
+    private <R> Composer<R> switchTo(Future<R> resultFuture) {
         return newComposer(resultFuture, this.errConsumer, this.executorService);
     }
 
     private <R> Composer<R> chainWith(Callable<Composer<R>> composerSupplier) {
         if (this.future == null) {
-            return newComposer(null);
+            return switchTo(null);
         } else {
             try {
                 return composerSupplier.call();
             } catch (Throwable t) {
                 errConsumer.accept(t);
-                return newComposer(null);
+                return switchTo(null);
             }
         }
     }
