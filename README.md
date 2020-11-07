@@ -3,13 +3,13 @@ An easy way to compose interdependent concurrent I/O streams [Work In Progress]
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-###Download
+### Download
 
-###Usage
+### Usage
 
-###Sample
+### Sample
 
-###Licence
+### Licence
 ```
    Copyright 2020 Krupal Shah
 
