@@ -21,20 +21,20 @@ public class Composer<T> implements Composable<T> {
         ExecutorService executorService = Executors.newCachedThreadPool();
         try {
             Future<R> future = executorService.submit(task);
-            return new Composer<>(future, errConsumer, executorService);
+            return newComposer(future, errConsumer, executorService);
         } catch (Throwable t) {
             errConsumer.accept(t);
-            return new Composer<>(null, errConsumer, executorService);
+            return newComposer(null, errConsumer, executorService);
         }
     }
 
     public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer, ExecutorService executorService) {
         try {
             Future<R> future = executorService.submit(task);
-            return new Composer<>(future, errConsumer, executorService);
+            return newComposer(future, errConsumer, executorService);
         } catch (Throwable t) {
             errConsumer.accept(t);
-            return new Composer<>(null, errConsumer, executorService);
+            return newComposer(null, errConsumer, executorService);
         }
     }
 
@@ -133,6 +133,14 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
+    private static <R> Composer<R> newComposer(Future<R> future, Consumer<Throwable> errConsumer, ExecutorService executorService) {
+        return new Composer<>(future, errConsumer, executorService);
+    }
+
+    private <R> Composer<R> newComposer(Future<R> resultFuture) {
+        return newComposer(resultFuture, this.errConsumer, this.executorService);
+    }
+
     private <R> Composer<R> chainWith(Callable<Composer<R>> composerSupplier) {
         if (this.future == null) {
             return newComposer(null);
@@ -146,19 +154,15 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
-    private <R> Composer<R> newComposer(Future<R> resultFuture) {
-        return new Composer<>(resultFuture, this.errConsumer, this.executorService);
-    }
-
-    private CountDownLatch newLatch(int nTasks) {
-        return new CountDownLatch(nTasks);
-    }
-
     private T awaitResult() throws InterruptedException, ExecutionException {
         if (this.future == null) {
             return null;
         }
         return this.future.get();
+    }
+
+    private CountDownLatch newLatch(int nTasks) {
+        return new CountDownLatch(nTasks);
     }
 
     private <R> R latchWrappedTask(Callable<R> task, CountDownLatch latch) throws Exception {
