@@ -1,10 +1,8 @@
 language: java
 jdk:
   - openjdk8
-
-env:
-  global:
-    - CODECOV_TOKEN=e2183943-fcf9-40ce-9206-b1324fe436ab
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+before_script:
+  - chmod +x gradlew
+script:
+  - ./gradlew check
+  - ./gradlew assemble
