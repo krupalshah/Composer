@@ -21,13 +21,7 @@ public class Composer<T> implements Composable<T> {
 
     public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer) {
         ExecutorService executorService = Executors.newCachedThreadPool();
-        try {
-            Future<R> future = executorService.submit(task);
-            return newComposer(future, errConsumer, executorService);
-        } catch (Throwable t) {
-            errConsumer.accept(t);
-            return newComposer(null, errConsumer, executorService);
-        }
+        return startWith(task, errConsumer, executorService);
     }
 
     public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer, ExecutorService executorService) {
@@ -49,7 +43,6 @@ public class Composer<T> implements Composable<T> {
         });
     }
 
-
     @Override
     public <S, R> Composable<R> thenCallTogether(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
         return chainWith(() -> {
@@ -65,10 +58,9 @@ public class Composer<T> implements Composable<T> {
 
             Set<S> results = new LinkedHashSet<>();
             for (Future<? extends S> future : futures) {
-                S s = future.get();
-                results.add(s);
+                S result = future.get();
+                results.add(result);
             }
-
             Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(results));
             return switchTo(resultFuture);
         });
@@ -80,13 +72,13 @@ public class Composer<T> implements Composable<T> {
             awaitResult();
 
             CountDownLatch latch = newLatch(2);
-            Future<? extends S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
-            Future<? extends U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
+            Future<? extends S> firstF = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<? extends U> secondF = executorService.submit(() -> latchWrappedTask(secondTask, latch));
             latch.await();
 
-            S s = future1.get();
-            U u = future2.get();
-            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u));
+            S first = firstF.get();
+            U second = secondF.get();
+            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(first, second));
             return switchTo(resultFuture);
         });
     }
@@ -97,15 +89,15 @@ public class Composer<T> implements Composable<T> {
             awaitResult();
 
             CountDownLatch latch = newLatch(3);
-            Future<? extends S> future1 = executorService.submit(() -> latchWrappedTask(firstTask, latch));
-            Future<? extends U> future2 = executorService.submit(() -> latchWrappedTask(secondTask, latch));
-            Future<? extends V> future3 = executorService.submit(() -> latchWrappedTask(thirdTask, latch));
+            Future<? extends S> firstF = executorService.submit(() -> latchWrappedTask(firstTask, latch));
+            Future<? extends U> secondF = executorService.submit(() -> latchWrappedTask(secondTask, latch));
+            Future<? extends V> thirdF = executorService.submit(() -> latchWrappedTask(thirdTask, latch));
             latch.await();
 
-            S s = future1.get();
-            U u = future2.get();
-            V v = future3.get();
-            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(s, u, v));
+            S first = firstF.get();
+            U second = secondF.get();
+            V third = thirdF.get();
+            Future<R> resultFuture = executorService.submit(() -> resultCombiner.apply(first, second, third));
             return switchTo(resultFuture);
         });
     }
@@ -113,9 +105,9 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenExecute(Runnable task) {
         return chainWith(() -> {
-            awaitResult();
-            executorService.submit(task);
-            return this;
+            T result = awaitResult();
+            Future<T> resultFuture = executorService.submit(task, result);
+            return switchTo(resultFuture);
         });
     }
 
@@ -144,12 +136,12 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenCheck(Predicate<? super T> validator) {
         return chainWith(() -> {
-            T t = awaitResult();
-            if (validator.test(t)) {
+            T result = awaitResult();
+            if (validator.test(result)) {
                 return this;
             } else {
                 errConsumer.accept(new ComposeException(String.format("The upstream result %s " +
-                        "is not valid as per the validator provided! Downstream execution will stop now.", t)));
+                        "is not valid as per the validator provided! Downstream execution will stop now.", result)));
                 return switchTo(null);
             }
         });
@@ -158,8 +150,8 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <R> Composable<R> thenProcess(Function<? super T, ? extends R> processor) {
         return chainWith(() -> {
-            T t = awaitResult();
-            Future<R> future = executorService.submit(() -> processor.apply(t));
+            T result = awaitResult();
+            Future<R> future = executorService.submit(() -> processor.apply(result));
             return switchTo(future);
         });
     }
