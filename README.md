@@ -2,7 +2,7 @@
 An easy way to compose interdependent concurrent I/O streams.
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
-[![codebeat badge](https://codebeat.co/badges/15911bf9-7ac2-4e6b-902b-ef4951dd85ee)](https://codebeat.co/projects/github-com-krupalshah-composer-master)
+[![codecov](https://codecov.io/gh/krupalshah/Composer/branch/master/graph/badge.svg?token=F2LFXWA9ZP)](https://codecov.io/gh/krupalshah/Composer)
 
 Composer helps you to compose chains of interdependent input/output 
 tasks such as webservice calls, database read/writes 
