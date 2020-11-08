@@ -7,6 +7,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.*;
 
+/**
+ * Implementation of {@link Composable} and serves as an entry point for all composer functions.
+ * Use factory methods {@link #startWith(Callable, Consumer)} to create new instance.
+ */
 public class Composer<T> implements Composable<T> {
 
     private final Future<T> future;
@@ -19,6 +23,14 @@ public class Composer<T> implements Composable<T> {
         this.executorService = executorService;
     }
 
+    /**
+     * Convenient factory method to create new composer instance.
+     * Creates default {@link ExecutorService} using cached thread pool internally for returned composer instance.
+     * @param task first asynchronous task to begin with which returns a result.
+     * @param errConsumer consume for all errors.
+     * @param <R> return type of task.
+     * @return new composer instance.
+     */
     public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         return startWith(task, errConsumer, executorService);

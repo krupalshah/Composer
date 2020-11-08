@@ -13,7 +13,7 @@ Most client side mobile/web applications and backend services communicating with
 require a framework in which interdependent asynchronous tasks can be glued together. 
 There are many libraries out there which do this very effectively, 
 but some of them are either not available for all platforms or require a steep learning curve. 
-The aim of composer is just to provide maximum achievable composability with a minimal interface.
+The aim of Composer is just to provide maximum achievable composability with a minimal interface.
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
