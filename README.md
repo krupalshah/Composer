@@ -1,14 +1,14 @@
-# Composer
-An easy way to compose chains of interdependent asynchronous tasks.
+# Composer [WORK IN PROGRESS]
+An easy way to compose chain of interdependent asynchronous tasks.
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-Composer helps you to compose chains of interdependent input/output 
+Composer helps you to execute chains of interdependent input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o with concurrency support using `java.util.concurrent` APIs. 
-It is compatible with Java 8+ and Android.
+It is compatible with Java 8 & above.
 
 Most client-side mobile/web applications and backend services communicating with each other 
 require a framework in which interdependent asynchronous tasks can be glued together. 
