@@ -1,5 +1,5 @@
-# Composer [WORK IN PROGRESS]
-An easy way to compose chain of interdependent asynchronous tasks.
+# Composer 
+An easy way to compose chain of interdependent asynchronous tasks. [WORK IN PROGRESS]
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 
