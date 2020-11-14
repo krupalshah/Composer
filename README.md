@@ -8,7 +8,7 @@ An easy way to compose chain of interdependent asynchronous tasks. [WORK IN PROG
 Composer helps you to execute chains of interdependent input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o with concurrency support using `java.util.concurrent` APIs. 
-It is compatible with Java 8 & above.
+It is compatible with Java 8 and above.
 
 Most client-side mobile/web applications and backend services communicating with each other 
 require a framework in which interdependent asynchronous tasks can be glued together. 
