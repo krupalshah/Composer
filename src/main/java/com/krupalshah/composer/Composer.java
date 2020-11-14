@@ -18,7 +18,7 @@ import java.util.concurrent.*;
 
 /**
  * Implementation of {@link Composable} and serves as an entry point for all composer functions.
- * Use factory methods such as {@link #startWith(Callable, ErrorStream)} to create new instance.
+ * Use factory methods such as {@link #startWith(ProducingTask, ErrorStream)} to create new instance.
  */
 public class Composer<T> implements Composable<T> {
 
@@ -34,32 +34,32 @@ public class Composer<T> implements Composable<T> {
 
     //region factory methods
     /**
-     * Convenient factory method to create new composer instance.
-     * Creates default {@link ExecutorService} using cached thread pool internally.
+     * <p>Convenient factory method to create new composer instance.</p>
+     * <p>Creates default {@link ExecutorService} using cached thread pool internally.</p>
      *
      * @param task      task which returns a result to begin with.
      * @param errStream consumer for all errors.
      * @param <R>       return type of task.
      * @return new composer instance.
      */
-    public static <R> Composer<R> startWith(Callable<R> task, ErrorStream errStream) {
+    public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         return startWith(task, errStream, executorService);
     }
 
     /**
-     * Factory method to create new composer instance with provided executor service instance.
+     * <p>Factory method to create new composer instance with provided executor service.</p>
      *
      * @param task            task which returns a result to begin with.
      * @param errStream       consume for all errors.
      * @param executorService executor service with custom thread pool to submit the task.
      * @param <R>             return type of task.
      * @return new composer instance.
-     * @see #startWith(Callable, ErrorStream)
+     * @see #startWith(ProducingTask, ErrorStream)
      */
-    public static <R> Composer<R> startWith(Callable<R> task, ErrorStream errStream, ExecutorService executorService) {
+    public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream, ExecutorService executorService) {
         try {
-            Future<R> future = executorService.submit(task);
+            Future<R> future = executorService.submit(task::produce);
             return newComposer(future, errStream, executorService);
         } catch (Throwable t) {
             errStream.onError(t);
