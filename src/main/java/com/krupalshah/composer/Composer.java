@@ -33,6 +33,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     //region factory methods
+
     /**
      * <p>Convenient factory method to create new composer instance.</p>
      * <p>Creates default {@link ExecutorService} using cached thread pool internally.</p>
@@ -149,8 +150,8 @@ public class Composer<T> implements Composable<T> {
                 S result = future.get();
                 results.add(result);
             }
-            Future<R> resultFuture = async(() -> resultsCollector.collect(results));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(results);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -166,8 +167,8 @@ public class Composer<T> implements Composable<T> {
 
             S result1 = future1.get();
             U result2 = future2.get();
-            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(result1, result2);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -185,8 +186,8 @@ public class Composer<T> implements Composable<T> {
             S result1 = future1.get();
             U result2 = future2.get();
             V result3 = future3.get();
-            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2, result3));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(result1, result2, result3);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -208,8 +209,8 @@ public class Composer<T> implements Composable<T> {
                 S result = future.get();
                 results.add(result);
             }
-            Future<R> resultFuture = async(() -> resultsCollector.collect(results));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(results);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -225,8 +226,8 @@ public class Composer<T> implements Composable<T> {
 
             S result1 = future1.get();
             U result2 = future2.get();
-            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(result1, result2);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -244,8 +245,8 @@ public class Composer<T> implements Composable<T> {
             S result1 = future1.get();
             U result2 = future2.get();
             V result3 = future3.get();
-            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2, result3));
-            return switchTo(resultFuture);
+            R result = resultsCollector.collect(result1, result2, result3);
+            return switchTo(new KnownFuture<>(result));
         });
     }
 
