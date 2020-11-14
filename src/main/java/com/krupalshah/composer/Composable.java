@@ -1,47 +1,53 @@
 package com.krupalshah.composer;
 
 
-import com.krupalshah.composer.function.*;
+import com.krupalshah.composer.function.collector.BiCollector;
+import com.krupalshah.composer.function.collector.Collector;
+import com.krupalshah.composer.function.collector.TriCollector;
+import com.krupalshah.composer.function.tasks.ConsumingTask;
+import com.krupalshah.composer.function.tasks.ProducingTask;
+import com.krupalshah.composer.function.tasks.Task;
+import com.krupalshah.composer.function.tasks.TransformingTask;
+import com.krupalshah.composer.function.validator.Validator;
 
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 
 public interface Composable<T> {
 
-    <R> Composable<R> thenCall(Callable<R> task);
+    Composable<T> thenRun(Task task);
 
-    <S, R> Composable<R> thenCallTogether(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
+    Composable<T> thenConsume(ConsumingTask<T> task);
 
-    <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
+    <R> Composable<R> thenProduce(ProducingTask<R> task);
 
-    <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
+    <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task);
 
-    <R> Composable<R> thenCallBlocking(Callable<R> task);
+    Composable<T> thenRunTogether(Set<Task> tasks);
 
-    <R> Composable<R> thenTransform(Function<? super T, ? extends R> task);
+    Composable<T> thenConsumeTogether(Set<ConsumingTask<T>> tasks);
 
-    <S, R> Composable<R> thenTransformTogether(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
+    <S, R> Composable<R> thenProduceTogether(Set<ProducingTask<? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector);
 
-    <S, U, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
+    <S, U, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector);
 
-    <S, U, V, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
+    <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, ProducingTask<? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector);
 
-    <R> Composable<R> thenTransformBlocking(Function<? super T, ? extends R> task);
+    <S, R> Composable<R> thenTransformTogether(Set<TransformingTask<? super T, ? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector);
 
-    Composable<T> thenConsume(Consumer<T> task);
+    <S, U, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector);
 
-    Composable<T> thenConsumeTogether(Set<Consumer<T>> tasks);
+    <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector);
 
-    Composable<T> thenConsumeBlocking(Consumer<T> task);
+    Composable<T> thenRunSynchronously(Task task);
 
-    Composable<T> thenRun(Runnable task);
+    Composable<T> thenConsumeSynchronously(ConsumingTask<T> task);
 
-    Composable<T> thenRunTogether(Set<Runnable> tasks);
+    <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task);
 
-    Composable<T> thenRunBlocking(Runnable task);
+    <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task);
 
-    Composable<T> thenCheckIf(Predicate<? super T> validator);
+    Composable<T> thenCheckIf(Validator<? super T> validator);
 
     T finish();
 }

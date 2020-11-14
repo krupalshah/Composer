@@ -4,6 +4,11 @@ package com.krupalshah.composer.util;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * <p>A {@link Future} implementation, of with the result is already known!</p>
+ * <p>It acts as a dummy wrapper for synchronous tasks supplying results to the downstream.</p>
+ * @param <T> expected result
+ */
 public  class KnownFuture<T> implements Future<T> {
 
     private T result;

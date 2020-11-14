@@ -1,7 +1,15 @@
 package com.krupalshah.composer;
 
-import com.krupalshah.composer.exception.ComposeException;
-import com.krupalshah.composer.function.*;
+import com.krupalshah.composer.exception.ComposerException;
+import com.krupalshah.composer.exception.ErrorStream;
+import com.krupalshah.composer.function.collector.BiCollector;
+import com.krupalshah.composer.function.collector.Collector;
+import com.krupalshah.composer.function.collector.TriCollector;
+import com.krupalshah.composer.function.tasks.ConsumingTask;
+import com.krupalshah.composer.function.tasks.ProducingTask;
+import com.krupalshah.composer.function.tasks.Task;
+import com.krupalshah.composer.function.tasks.TransformingTask;
+import com.krupalshah.composer.function.validator.Validator;
 import com.krupalshah.composer.util.KnownFuture;
 
 import java.util.LinkedHashSet;
@@ -10,75 +18,128 @@ import java.util.concurrent.*;
 
 /**
  * Implementation of {@link Composable} and serves as an entry point for all composer functions.
- * Use factory methods {@link #startWith(Callable, Consumer)} to create new instance.
+ * Use factory methods such as {@link #startWith(Callable, ErrorStream)} to create new instance.
  */
 public class Composer<T> implements Composable<T> {
 
     private final Future<T> future;
-    private final Consumer<Throwable> errConsumer;
+    private final ErrorStream errStream;
     private final ExecutorService executorService;
 
-    private Composer(Future<T> future, Consumer<Throwable> errConsumer, ExecutorService executorService) {
+    private Composer(Future<T> future, ErrorStream errStream, ExecutorService executorService) {
         this.future = future;
-        this.errConsumer = errConsumer;
+        this.errStream = errStream;
         this.executorService = executorService;
     }
 
+    //region factory methods
     /**
      * Convenient factory method to create new composer instance.
      * Creates default {@link ExecutorService} using cached thread pool internally.
      *
-     * @param task        task which returns a result to begin with.
-     * @param errConsumer consume for all errors.
-     * @param <R>         return type of task.
+     * @param task      task which returns a result to begin with.
+     * @param errStream consumer for all errors.
+     * @param <R>       return type of task.
      * @return new composer instance.
      */
-    public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer) {
+    public static <R> Composer<R> startWith(Callable<R> task, ErrorStream errStream) {
         ExecutorService executorService = Executors.newCachedThreadPool();
-        return startWith(task, errConsumer, executorService);
+        return startWith(task, errStream, executorService);
     }
 
     /**
      * Factory method to create new composer instance with provided executor service instance.
      *
      * @param task            task which returns a result to begin with.
-     * @param errConsumer     consume for all errors.
+     * @param errStream       consume for all errors.
      * @param executorService executor service with custom thread pool to submit the task.
      * @param <R>             return type of task.
      * @return new composer instance.
-     * @see #startWith(Callable, Consumer)
+     * @see #startWith(Callable, ErrorStream)
      */
-    public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer, ExecutorService executorService) {
+    public static <R> Composer<R> startWith(Callable<R> task, ErrorStream errStream, ExecutorService executorService) {
         try {
             Future<R> future = executorService.submit(task);
-            return newComposer(future, errConsumer, executorService);
+            return newComposer(future, errStream, executorService);
         } catch (Throwable t) {
-            errConsumer.accept(t);
-            return newComposer(null, errConsumer, executorService);
+            errStream.onError(t);
+            return newComposer(null, errStream, executorService);
         }
     }
+    //endregion
 
-    /**
-     * Executes a task which returns result
-     */
+    //region public API
     @Override
-    public <R> Composable<R> thenCall(Callable<R> task) {
+    public Composable<T> thenRun(Task task) {
+        return chainWith(() -> {
+            T upstream = await();
+            Future<T> resultFuture = async(() -> uncheckedTask(task), upstream);
+            return switchTo(resultFuture);
+        });
+    }
+
+    @Override
+    public Composable<T> thenConsume(ConsumingTask<T> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            Future<T> resultFuture = async(() -> uncheckedTask(task, upstream), upstream);
+            return switchTo(resultFuture);
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenProduce(ProducingTask<R> task) {
         return chainWith(() -> {
             await();
-            Future<R> future = async(task);
+            Future<R> future = async(task::produce);
             return switchTo(future);
         });
     }
 
     @Override
-    public <S, R> Composable<R> thenCallTogether(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
+    public <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            Future<R> future = async(() -> task.transform(upstream));
+            return switchTo(future);
+        });
+    }
+
+    @Override
+    public Composable<T> thenRunTogether(Set<Task> tasks) {
+        return chainWith(() -> {
+            await();
+            CountDownLatch latch = newLatch(tasks.size());
+            for (Task task : tasks) {
+                async(() -> latchWrappedTask(() -> uncheckedTask(task), latch));
+            }
+            latch.await();
+            return this;
+        });
+    }
+
+    @Override
+    public Composable<T> thenConsumeTogether(Set<ConsumingTask<T>> tasks) {
+        return chainWith(() -> {
+            T upstream = await();
+            CountDownLatch latch = newLatch(tasks.size());
+            for (ConsumingTask<T> task : tasks) {
+                async(() -> latchWrappedTask(() -> uncheckedTask(task, upstream), latch));
+            }
+            latch.await();
+            return this;
+        });
+    }
+
+    @Override
+    public <S, R> Composable<R> thenProduceTogether(Set<ProducingTask<? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
             await();
 
             CountDownLatch latch = newLatch(tasks.size());
             Set<Future<? extends S>> futures = new LinkedHashSet<>();
-            for (Callable<? extends S> task : tasks) {
-                Future<? extends S> future = async(() -> latchWrappedTask(task, latch));
+            for (ProducingTask<? extends S> task : tasks) {
+                Future<? extends S> future = async(() -> latchWrappedTask(task::produce, latch));
                 futures.add(future);
             }
             latch.await();
@@ -88,74 +149,56 @@ public class Composer<T> implements Composable<T> {
                 S result = future.get();
                 results.add(result);
             }
-            Future<R> resultFuture = async(() -> resultCombiner.apply(results));
+            Future<R> resultFuture = async(() -> resultsCollector.collect(results));
             return switchTo(resultFuture);
         });
     }
 
     @Override
-    public <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
+    public <S, U, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector) {
         return chainWith(() -> {
             await();
 
             CountDownLatch latch = newLatch(2);
-            Future<? extends S> firstF = async(() -> latchWrappedTask(firstTask, latch));
-            Future<? extends U> secondF = async(() -> latchWrappedTask(secondTask, latch));
+            Future<? extends S> future1 = async(() -> latchWrappedTask(task1::produce, latch));
+            Future<? extends U> future2 = async(() -> latchWrappedTask(task2::produce, latch));
             latch.await();
 
-            S first = firstF.get();
-            U second = secondF.get();
-            Future<R> resultFuture = async(() -> resultCombiner.apply(first, second));
+            S result1 = future1.get();
+            U result2 = future2.get();
+            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2));
             return switchTo(resultFuture);
         });
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, ProducingTask<? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector) {
         return chainWith(() -> {
             await();
 
             CountDownLatch latch = newLatch(3);
-            Future<? extends S> firstF = async(() -> latchWrappedTask(firstTask, latch));
-            Future<? extends U> secondF = async(() -> latchWrappedTask(secondTask, latch));
-            Future<? extends V> thirdF = async(() -> latchWrappedTask(thirdTask, latch));
+            Future<? extends S> future1 = async(() -> latchWrappedTask(task1::produce, latch));
+            Future<? extends U> future2 = async(() -> latchWrappedTask(task2::produce, latch));
+            Future<? extends V> future3 = async(() -> latchWrappedTask(task3::produce, latch));
             latch.await();
 
-            S first = firstF.get();
-            U second = secondF.get();
-            V third = thirdF.get();
-            Future<R> resultFuture = async(() -> resultCombiner.apply(first, second, third));
+            S result1 = future1.get();
+            U result2 = future2.get();
+            V result3 = future3.get();
+            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2, result3));
             return switchTo(resultFuture);
         });
     }
 
     @Override
-    public <R> Composable<R> thenCallBlocking(Callable<R> task) {
-        return chainWith(() -> {
-            await();
-            R result = task.call();
-            return switchTo(new KnownFuture<>(result));
-        });
-    }
-
-    @Override
-    public <R> Composable<R> thenTransform(Function<? super T, ? extends R> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            Future<R> future = async(() -> task.apply(upstream));
-            return switchTo(future);
-        });
-    }
-
-    @Override
-    public <S, R> Composable<R> thenTransformTogether(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
+    public <S, R> Composable<R> thenTransformTogether(Set<TransformingTask<? super T, ? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
 
             CountDownLatch latch = newLatch(tasks.size());
             Set<Future<? extends S>> futures = new LinkedHashSet<>();
-            for (Function<? super T, ? extends S> task : tasks) {
-                Future<? extends S> future = async(() -> latchWrappedTask(() -> task.apply(upstream), latch));
+            for (TransformingTask<? super T, ? extends S> task : tasks) {
+                Future<? extends S> future = async(() -> latchWrappedTask(() -> task.transform(upstream), latch));
                 futures.add(future);
             }
             latch.await();
@@ -165,113 +208,49 @@ public class Composer<T> implements Composable<T> {
                 S result = future.get();
                 results.add(result);
             }
-            Future<R> resultFuture = async(() -> resultCombiner.apply(results));
+            Future<R> resultFuture = async(() -> resultsCollector.collect(results));
             return switchTo(resultFuture);
         });
     }
 
-
     @Override
-    public <S, U, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
+    public <S, U, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
 
             CountDownLatch latch = newLatch(2);
-            Future<? extends S> firstF = async(() -> latchWrappedTask(() -> firstTask.apply(upstream), latch));
-            Future<? extends U> secondF = async(() -> latchWrappedTask(() -> secondTask.apply(upstream), latch));
+            Future<? extends S> future1 = async(() -> latchWrappedTask(() -> task1.transform(upstream), latch));
+            Future<? extends U> future2 = async(() -> latchWrappedTask(() -> task2.transform(upstream), latch));
             latch.await();
 
-            S first = firstF.get();
-            U second = secondF.get();
-            Future<R> resultFuture = async(() -> resultCombiner.apply(first, second));
+            S result1 = future1.get();
+            U result2 = future2.get();
+            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2));
             return switchTo(resultFuture);
         });
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
 
             CountDownLatch latch = newLatch(3);
-            Future<? extends S> firstF = async(() -> latchWrappedTask(() -> firstTask.apply(upstream), latch));
-            Future<? extends U> secondF = async(() -> latchWrappedTask(() -> secondTask.apply(upstream), latch));
-            Future<? extends V> thirdF = async(() -> latchWrappedTask(() -> thirdTask.apply(upstream), latch));
+            Future<? extends S> future1 = async(() -> latchWrappedTask(() -> task1.transform(upstream), latch));
+            Future<? extends U> future2 = async(() -> latchWrappedTask(() -> task2.transform(upstream), latch));
+            Future<? extends V> future3 = async(() -> latchWrappedTask(() -> task3.transform(upstream), latch));
             latch.await();
 
-            S first = firstF.get();
-            U second = secondF.get();
-            V third = thirdF.get();
-            Future<R> resultFuture = async(() -> resultCombiner.apply(first, second, third));
+            S result1 = future1.get();
+            U result2 = future2.get();
+            V result3 = future3.get();
+            Future<R> resultFuture = async(() -> resultsCollector.collect(result1, result2, result3));
             return switchTo(resultFuture);
         });
     }
 
     @Override
-    public <R> Composable<R> thenTransformBlocking(Function<? super T, ? extends R> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            R result = task.apply(upstream);
-            return switchTo(new KnownFuture<>(result));
-        });
-    }
-
-    @Override
-    public Composable<T> thenConsume(Consumer<T> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            Future<T> resultFuture = async(() -> task.accept(upstream), upstream);
-            return switchTo(resultFuture);
-        });
-    }
-
-    @Override
-    public Composable<T> thenConsumeTogether(Set<Consumer<T>> tasks) {
-        return chainWith(() -> {
-            T upstream = await();
-            CountDownLatch latch = newLatch(tasks.size());
-            for (Consumer<T> task : tasks) {
-                async(() -> latchWrappedTask(() -> task.accept(upstream), latch));
-            }
-            latch.await();
-            return this;
-        });
-    }
-
-    @Override
-    public Composable<T> thenConsumeBlocking(Consumer<T> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            task.accept(upstream);
-            return this;
-        });
-    }
-
-
-    @Override
-    public Composable<T> thenRun(Runnable task) {
-        return chainWith(() -> {
-            T upstream = await();
-            Future<T> resultFuture = async(task, upstream);
-            return switchTo(resultFuture);
-        });
-    }
-
-    @Override
-    public Composable<T> thenRunTogether(Set<Runnable> tasks) {
-        return chainWith(() -> {
-            await();
-            CountDownLatch latch = newLatch(tasks.size());
-            for (Runnable task : tasks) {
-                async(() -> latchWrappedTask(task, latch));
-            }
-            latch.await();
-            return this;
-        });
-    }
-
-    @Override
-    public Composable<T> thenRunBlocking(Runnable task) {
+    public Composable<T> thenRunSynchronously(Task task) {
         return chainWith(() -> {
             await();
             task.run();
@@ -280,13 +259,40 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenCheckIf(Predicate<? super T> validator) {
+    public Composable<T> thenConsumeSynchronously(ConsumingTask<T> task) {
         return chainWith(() -> {
             T upstream = await();
-            if (validator.test(upstream)) {
+            task.consume(upstream);
+            return this;
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task) {
+        return chainWith(() -> {
+            await();
+            R result = task.produce();
+            return switchTo(new KnownFuture<>(result));
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            R result = task.transform(upstream);
+            return switchTo(new KnownFuture<>(result));
+        });
+    }
+
+    @Override
+    public Composable<T> thenCheckIf(Validator<? super T> validator) {
+        return chainWith(() -> {
+            T upstream = await();
+            if (validator.validate(upstream)) {
                 return this;
             } else {
-                errConsumer.accept(new ComposeException(String.format("The upstream result %s " +
+                errStream.onError(new ComposerException(String.format("The upstream result %s " +
                         "is not valid as per the validator provided! Downstream execution will stop now.", upstream)));
                 return switchTo(null);
             }
@@ -298,17 +304,19 @@ public class Composer<T> implements Composable<T> {
         try {
             return await();
         } catch (Throwable t) {
-            errConsumer.accept(t);
+            errStream.onError(t);
             return null;
         }
     }
+    //endregion
 
-    private static <R> Composer<R> newComposer(Future<R> future, Consumer<Throwable> errConsumer, ExecutorService executorService) {
-        return new Composer<>(future, errConsumer, executorService);
+    //region private API
+    private static <R> Composer<R> newComposer(Future<R> future, ErrorStream errStream, ExecutorService executorService) {
+        return new Composer<>(future, errStream, executorService);
     }
 
     private <R> Composer<R> switchTo(Future<R> resultFuture) {
-        return newComposer(resultFuture, this.errConsumer, this.executorService);
+        return newComposer(resultFuture, this.errStream, this.executorService);
     }
 
     private <R> Composer<R> chainWith(Callable<Composer<R>> composerSupplier) {
@@ -318,7 +326,7 @@ public class Composer<T> implements Composable<T> {
             try {
                 return composerSupplier.call();
             } catch (Throwable t) {
-                errConsumer.accept(t);
+                errStream.onError(t);
                 return switchTo(null);
             }
         }
@@ -362,5 +370,22 @@ public class Composer<T> implements Composable<T> {
             latch.countDown();
         }
     }
+
+    private void uncheckedTask(Task task) {
+        try {
+            task.run();
+        } catch (Exception e) {
+            throw new ComposerException(e);
+        }
+    }
+
+    private <S> void uncheckedTask(ConsumingTask<S> task, S input) {
+        try {
+            task.consume(input);
+        } catch (Exception e) {
+            throw new ComposerException(e);
+        }
+    }
+    //endregion
 
 }
