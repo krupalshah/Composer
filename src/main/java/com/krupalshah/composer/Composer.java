@@ -112,7 +112,7 @@ public class Composer<T> implements Composable<T> {
             await();
             CountDownLatch latch = newLatch(tasks.size());
             for (Task task : tasks) {
-                async(() -> latchWrappedTask(() -> uncheckedTask(task), latch));
+                async(() -> countdownTask(() -> uncheckedTask(task), latch));
             }
             latch.await();
             return this;
@@ -125,7 +125,7 @@ public class Composer<T> implements Composable<T> {
             T upstream = await();
             CountDownLatch latch = newLatch(tasks.size());
             for (ConsumingTask<T> task : tasks) {
-                async(() -> latchWrappedTask(() -> uncheckedTask(task, upstream), latch));
+                async(() -> countdownTask(() -> uncheckedTask(task, upstream), latch));
             }
             latch.await();
             return this;
@@ -140,7 +140,7 @@ public class Composer<T> implements Composable<T> {
             CountDownLatch latch = newLatch(tasks.size());
             Set<Future<? extends S>> futures = new LinkedHashSet<>();
             for (ProducingTask<? extends S> task : tasks) {
-                Future<? extends S> future = async(() -> latchWrappedTask(task::produce, latch));
+                Future<? extends S> future = async(() -> countdownTask(task::produce, latch));
                 futures.add(future);
             }
             latch.await();
@@ -161,8 +161,8 @@ public class Composer<T> implements Composable<T> {
             await();
 
             CountDownLatch latch = newLatch(2);
-            Future<? extends S> future1 = async(() -> latchWrappedTask(task1::produce, latch));
-            Future<? extends U> future2 = async(() -> latchWrappedTask(task2::produce, latch));
+            Future<? extends S> future1 = async(() -> countdownTask(task1::produce, latch));
+            Future<? extends U> future2 = async(() -> countdownTask(task2::produce, latch));
             latch.await();
 
             S result1 = future1.get();
@@ -178,9 +178,9 @@ public class Composer<T> implements Composable<T> {
             await();
 
             CountDownLatch latch = newLatch(3);
-            Future<? extends S> future1 = async(() -> latchWrappedTask(task1::produce, latch));
-            Future<? extends U> future2 = async(() -> latchWrappedTask(task2::produce, latch));
-            Future<? extends V> future3 = async(() -> latchWrappedTask(task3::produce, latch));
+            Future<? extends S> future1 = async(() -> countdownTask(task1::produce, latch));
+            Future<? extends U> future2 = async(() -> countdownTask(task2::produce, latch));
+            Future<? extends V> future3 = async(() -> countdownTask(task3::produce, latch));
             latch.await();
 
             S result1 = future1.get();
@@ -199,7 +199,7 @@ public class Composer<T> implements Composable<T> {
             CountDownLatch latch = newLatch(tasks.size());
             Set<Future<? extends S>> futures = new LinkedHashSet<>();
             for (TransformingTask<? super T, ? extends S> task : tasks) {
-                Future<? extends S> future = async(() -> latchWrappedTask(() -> task.transform(upstream), latch));
+                Future<? extends S> future = async(() -> countdownTask(() -> task.transform(upstream), latch));
                 futures.add(future);
             }
             latch.await();
@@ -220,8 +220,8 @@ public class Composer<T> implements Composable<T> {
             T upstream = await();
 
             CountDownLatch latch = newLatch(2);
-            Future<? extends S> future1 = async(() -> latchWrappedTask(() -> task1.transform(upstream), latch));
-            Future<? extends U> future2 = async(() -> latchWrappedTask(() -> task2.transform(upstream), latch));
+            Future<? extends S> future1 = async(() -> countdownTask(() -> task1.transform(upstream), latch));
+            Future<? extends U> future2 = async(() -> countdownTask(() -> task2.transform(upstream), latch));
             latch.await();
 
             S result1 = future1.get();
@@ -237,9 +237,9 @@ public class Composer<T> implements Composable<T> {
             T upstream = await();
 
             CountDownLatch latch = newLatch(3);
-            Future<? extends S> future1 = async(() -> latchWrappedTask(() -> task1.transform(upstream), latch));
-            Future<? extends U> future2 = async(() -> latchWrappedTask(() -> task2.transform(upstream), latch));
-            Future<? extends V> future3 = async(() -> latchWrappedTask(() -> task3.transform(upstream), latch));
+            Future<? extends S> future1 = async(() -> countdownTask(() -> task1.transform(upstream), latch));
+            Future<? extends U> future2 = async(() -> countdownTask(() -> task2.transform(upstream), latch));
+            Future<? extends V> future3 = async(() -> countdownTask(() -> task3.transform(upstream), latch));
             latch.await();
 
             S result1 = future1.get();
@@ -356,7 +356,7 @@ public class Composer<T> implements Composable<T> {
         return new CountDownLatch(nTasks);
     }
 
-    private <R> R latchWrappedTask(Callable<R> task, CountDownLatch latch) throws Exception {
+    private <R> R countdownTask(Callable<R> task, CountDownLatch latch) throws Exception {
         try {
             return task.call();
         } finally {
@@ -364,7 +364,7 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
-    private void latchWrappedTask(Runnable task, CountDownLatch latch) {
+    private void countdownTask(Runnable task, CountDownLatch latch) {
         try {
             task.run();
         } finally {
