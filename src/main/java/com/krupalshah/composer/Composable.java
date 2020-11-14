@@ -11,35 +11,35 @@ public interface Composable<T> {
 
     <R> Composable<R> thenCall(Callable<R> task);
 
-    <S, R> Composable<R> thenCall(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
+    <S, R> Composable<R> thenCallTogether(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
 
-    <S, U, R> Composable<R> thenCall(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
+    <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
 
-    <S, U, V, R> Composable<R> thenCall(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
+    <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
 
-    <R> Composable<R> thenCallSynchronously(Callable<R> task);
+    <R> Composable<R> thenCallBlocking(Callable<R> task);
 
     <R> Composable<R> thenTransform(Function<? super T, ? extends R> task);
 
-    <S, R> Composable<R> thenTransform(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
+    <S, R> Composable<R> thenTransformTogether(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner);
 
-    <S, U, R> Composable<R> thenTransform(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
+    <S, U, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner);
 
-    <S, U, V, R> Composable<R> thenTransform(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
+    <S, U, V, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner);
 
-    <R> Composable<R> thenTransformSynchronously(Function<? super T, ? extends R> task);
+    <R> Composable<R> thenTransformBlocking(Function<? super T, ? extends R> task);
 
     Composable<T> thenConsume(Consumer<T> task);
 
-    Composable<T> thenConsume(Set<Consumer<T>> tasks);
+    Composable<T> thenConsumeTogether(Set<Consumer<T>> tasks);
 
-    Composable<T> thenConsumeSynchronously(Consumer<T> task);
+    Composable<T> thenConsumeBlocking(Consumer<T> task);
 
-    Composable<T> thenExecute(Runnable task);
+    Composable<T> thenRun(Runnable task);
 
-    Composable<T> thenExecute(Set<Runnable> tasks);
+    Composable<T> thenRunTogether(Set<Runnable> tasks);
 
-    Composable<T> thenExecuteSynchronously(Runnable task);
+    Composable<T> thenRunBlocking(Runnable task);
 
     Composable<T> thenCheckIf(Predicate<? super T> validator);
 

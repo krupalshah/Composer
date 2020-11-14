@@ -26,9 +26,9 @@ public class Composer<T> implements Composable<T> {
 
     /**
      * Convenient factory method to create new composer instance.
-     * Creates default {@link ExecutorService} using cached thread pool internally for returned composer instance.
+     * Creates default {@link ExecutorService} using cached thread pool internally.
      *
-     * @param task        first asynchronous task to begin with which returns a result.
+     * @param task        task which returns a result to begin with.
      * @param errConsumer consume for all errors.
      * @param <R>         return type of task.
      * @return new composer instance.
@@ -38,6 +38,16 @@ public class Composer<T> implements Composable<T> {
         return startWith(task, errConsumer, executorService);
     }
 
+    /**
+     * Factory method to create new composer instance with provided executor service instance.
+     *
+     * @param task            task which returns a result to begin with.
+     * @param errConsumer     consume for all errors.
+     * @param executorService executor service with custom thread pool to submit the task.
+     * @param <R>             return type of task.
+     * @return new composer instance.
+     * @see #startWith(Callable, Consumer)
+     */
     public static <R> Composer<R> startWith(Callable<R> task, Consumer<Throwable> errConsumer, ExecutorService executorService) {
         try {
             Future<R> future = executorService.submit(task);
@@ -48,6 +58,9 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
+    /**
+     * Executes a task which returns result
+     */
     @Override
     public <R> Composable<R> thenCall(Callable<R> task) {
         return chainWith(() -> {
@@ -58,7 +71,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenCall(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
+    public <S, R> Composable<R> thenCallTogether(Set<Callable<? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
         return chainWith(() -> {
             await();
 
@@ -81,7 +94,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenCall(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
+    public <S, U, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
         return chainWith(() -> {
             await();
 
@@ -98,7 +111,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenCall(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenCallTogether(Callable<? extends S> firstTask, Callable<? extends U> secondTask, Callable<? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
         return chainWith(() -> {
             await();
 
@@ -117,7 +130,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <R> Composable<R> thenCallSynchronously(Callable<R> task) {
+    public <R> Composable<R> thenCallBlocking(Callable<R> task) {
         return chainWith(() -> {
             await();
             R result = task.call();
@@ -135,7 +148,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenTransform(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
+    public <S, R> Composable<R> thenTransformTogether(Set<Function<? super T, ? extends S>> tasks, Function<Set<? super S>, ? extends R> resultCombiner) {
         return chainWith(() -> {
             T upstream = await();
 
@@ -159,7 +172,7 @@ public class Composer<T> implements Composable<T> {
 
 
     @Override
-    public <S, U, R> Composable<R> thenTransform(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
+    public <S, U, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, BiFunction<? super S, ? super U, ? extends R> resultCombiner) {
         return chainWith(() -> {
             T upstream = await();
 
@@ -176,7 +189,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenTransform(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
+    public <S, U, V, R> Composable<R> thenTransformTogether(Function<? super T, ? extends S> firstTask, Function<? super T, ? extends U> secondTask, Function<? super T, ? extends V> thirdTask, TriFunction<? super S, ? super U, ? super V, ? extends R> resultCombiner) {
         return chainWith(() -> {
             T upstream = await();
 
@@ -195,7 +208,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <R> Composable<R> thenTransformSynchronously(Function<? super T, ? extends R> task) {
+    public <R> Composable<R> thenTransformBlocking(Function<? super T, ? extends R> task) {
         return chainWith(() -> {
             T upstream = await();
             R result = task.apply(upstream);
@@ -213,7 +226,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenConsume(Set<Consumer<T>> tasks) {
+    public Composable<T> thenConsumeTogether(Set<Consumer<T>> tasks) {
         return chainWith(() -> {
             T upstream = await();
             CountDownLatch latch = newLatch(tasks.size());
@@ -226,7 +239,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenConsumeSynchronously(Consumer<T> task) {
+    public Composable<T> thenConsumeBlocking(Consumer<T> task) {
         return chainWith(() -> {
             T upstream = await();
             task.accept(upstream);
@@ -236,7 +249,7 @@ public class Composer<T> implements Composable<T> {
 
 
     @Override
-    public Composable<T> thenExecute(Runnable task) {
+    public Composable<T> thenRun(Runnable task) {
         return chainWith(() -> {
             T upstream = await();
             Future<T> resultFuture = async(task, upstream);
@@ -245,7 +258,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenExecute(Set<Runnable> tasks) {
+    public Composable<T> thenRunTogether(Set<Runnable> tasks) {
         return chainWith(() -> {
             await();
             CountDownLatch latch = newLatch(tasks.size());
@@ -258,7 +271,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenExecuteSynchronously(Runnable task) {
+    public Composable<T> thenRunBlocking(Runnable task) {
         return chainWith(() -> {
             await();
             task.run();
