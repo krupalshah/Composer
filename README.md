@@ -26,7 +26,12 @@ Here is an example of how you can use composer to execute multiple interdependen
 Composer.startWith(() -> session.getCurrentUserId(), err -> err.printStackTrace())
         .thenTransform(userId -> userApi.getUserDetails(userId))
         .thenCheckIf(response -> response.status.isOk())
-        .thenTransformTogether(response -> postsApi.getPosts(response.username), response -> photosApi.getPhotos(response.username), response -> notesApi.getNotes(response.username), (posts,photos,notes) -> new MergedResult(posts,photos,notes))
+        .thenTransformTogether(
+            response -> postsApi.getPosts(response.username), 
+            response -> photosApi.getPhotos(response.username), 
+            response -> notesApi.getNotes(response.username), 
+            (posts,photos,notes) -> new MergedResult(posts,photos,notes)
+        )
         .thenConsumeSynchronously(results -> presentOnUI(results))
         .thenRun(() -> db.trackEvent("user_details"))
         .finish();
