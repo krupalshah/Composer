@@ -1,5 +1,7 @@
 # Composer 
-An easy way to compose chain of interdependent asynchronous tasks. [WORK IN PROGRESS]
+An easy way to compose chain of interdependent asynchronous tasks.
+
+ ######!!! WORK IN PROGRESS
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 [![Download](https://api.bintray.com/packages/krupalshah55/Composer/Composer/images/download.svg) ](https://bintray.com/krupalshah55/Composer/Composer/_latestVersion)
@@ -19,7 +21,7 @@ There are many libraries out there which allow doing this very effectively,
 but some of them are either not available for all jvm based platforms or require a steep learning curve. 
 The aim of this library is just to provide maximum achievable composability within the constraints of a minimal, easy to use programmable interface.
 
-Here is an example of how you can use composer to chain multiple interdependent asynchronous tasks:
+Here is an example of how you can use composer to execute multiple interdependent asynchronous tasks:
 ```
 Composer.startWith(() -> session.getCurrentUserId(), err -> err.printStackTrace())
         .thenTransform(userId -> userApi.getUserDetails(userId))
@@ -29,6 +31,7 @@ Composer.startWith(() -> session.getCurrentUserId(), err -> err.printStackTrace(
         .thenRun(() -> db.trackEvent("user_details"))
         .finish();
 ``` 
+Find more information about usage under [Getting Started](#getting-started) section.
     
 ### Setup
 * Gradle:
@@ -56,9 +59,9 @@ dependencies {
 ```
 
 ### Getting Started
-
+TBD
 ### Sample
-
+TBD
 ### Licence
 ```
 Copyright 2020 Krupal Shah
