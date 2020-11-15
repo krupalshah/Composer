@@ -1,10 +1,110 @@
-group 'com.krupalshah'
-version '1.0'
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id "com.jfrog.bintray" version "1.8.5"
+    id "com.jfrog.artifactory" version "4.18.0"
+}
 
-apply plugin: 'java'
+group 'com.krupalshah'
+version = '1.0.2' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+
+apply plugin: 'java-library'
 
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    jcenter()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'composer'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'Composer'
+                description = 'A library for composability of asynchronous tasks'
+                url = 'https://github.com/krupalshah/Composer'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'krupalshah'
+                        name = 'Krupal Shah'
+                        email = 'krupalshah55@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/krupalshah/Composer.git'
+                    developerConnection = 'git@github.com:krupalshah/Composer.git'
+                    url = 'https://github.com/krupalshah/Composer'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://github.com/krupalshah/Composer/tree/release"
+            def snapshotsRepoUrl = "https://github.com/krupalshah/Composer/tree/master"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['mavenJava']
+
+    pkg {
+        repo = 'Composer'
+        name = 'Composer'
+        userOrg = 'krupalshah55'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'git@github.com:krupalshah/Composer.git'
+        version {
+            name = '1.0.2'
+            desc = '1.0.2'
+            released  = new Date()
+        }
+    }
+}
+
+artifactory {
+    contextUrl = 'http://oss.jfrog.org'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = System.getProperty('bintray.user')
+            password = System.getProperty('bintray.key')
+        }
+        defaults {
+            publications('mavenJava')
+            publishArtifacts = true
+            publishPom = true
+        }
+    }
+    resolve {
+        repoKey = 'jcenter'
+    }
+    clientConfig.info.setBuildNumber(System.getProperty('build.number'))
 }
