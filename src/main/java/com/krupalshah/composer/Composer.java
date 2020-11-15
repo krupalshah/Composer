@@ -75,6 +75,7 @@ public class Composer<T> implements Composable<T> {
     public Composable<T> thenRun(Task task) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             Future<T> resultFuture = async(() -> uncheckedTask(task), upstream);
             return switchTo(resultFuture);
         });
@@ -84,6 +85,7 @@ public class Composer<T> implements Composable<T> {
     public Composable<T> thenConsume(ConsumingTask<T> task) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             Future<T> resultFuture = async(() -> uncheckedTask(task, upstream), upstream);
             return switchTo(resultFuture);
         });
@@ -102,6 +104,7 @@ public class Composer<T> implements Composable<T> {
     public <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             Future<R> future = async(() -> task.transform(upstream));
             return switchTo(future);
         });
@@ -124,6 +127,7 @@ public class Composer<T> implements Composable<T> {
     public Composable<T> thenConsumeTogether(Set<ConsumingTask<T>> tasks) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             CountDownLatch latch = newLatch(tasks.size());
             for (ConsumingTask<T> task : tasks) {
                 async(() -> countdownTask(() -> uncheckedTask(task, upstream), latch));
@@ -196,6 +200,7 @@ public class Composer<T> implements Composable<T> {
     public <S, R> Composable<R> thenTransformTogether(Set<TransformingTask<? super T, ? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
 
             CountDownLatch latch = newLatch(tasks.size());
             Set<Future<? extends S>> futures = new LinkedHashSet<>();
@@ -219,6 +224,7 @@ public class Composer<T> implements Composable<T> {
     public <S, U, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
 
             CountDownLatch latch = newLatch(2);
             Future<? extends S> future1 = async(() -> countdownTask(() -> task1.transform(upstream), latch));
@@ -236,6 +242,7 @@ public class Composer<T> implements Composable<T> {
     public <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
 
             CountDownLatch latch = newLatch(3);
             Future<? extends S> future1 = async(() -> countdownTask(() -> task1.transform(upstream), latch));
@@ -264,6 +271,7 @@ public class Composer<T> implements Composable<T> {
     public Composable<T> thenConsumeSynchronously(ConsumingTask<T> task) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             task.consume(upstream);
             return this;
         });
@@ -282,6 +290,7 @@ public class Composer<T> implements Composable<T> {
     public <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             R result = task.transform(upstream);
             return switchTo(new KnownFuture<>(result));
         });
@@ -291,11 +300,12 @@ public class Composer<T> implements Composable<T> {
     public Composable<T> thenCheckIf(Validator<? super T> validator) {
         return chainWith(() -> {
             T upstream = await();
+            if (upstream == null) return switchTo(null);
             if (validator.validate(upstream)) {
                 return this;
             } else {
-                errStream.onError(new ComposerException(String.format("The upstream result %s " +
-                        "is not valid as per the validator provided! Downstream execution will stop now.", upstream)));
+                errStream.onError(new ComposerException(String.format("The upstream value %s is not valid as per the condition specified in given Validator %s! "
+                        + "Downstream execution will stop now.", upstream, validator)));
                 return switchTo(null);
             }
         });
