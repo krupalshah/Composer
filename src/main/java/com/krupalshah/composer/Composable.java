@@ -1,6 +1,8 @@
 package com.krupalshah.composer;
 
 
+import com.krupalshah.composer.exception.ComposerException;
+import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
@@ -37,6 +39,7 @@ public interface Composable<T> {
      * <P>Executes an asynchronous producer task<P>
      *
      * @param task task which takes no input but returns an output
+     * @param <R>  type of task output
      */
     <R> Composable<R> thenProduce(ProducingTask<R> task);
 
@@ -44,6 +47,7 @@ public interface Composable<T> {
      * <P>Executes an asynchronous transformer task<P>
      *
      * @param task task which takes an input and transforms it into an output
+     * @param <R>  type of task output
      */
     <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task);
 
@@ -143,15 +147,46 @@ public interface Composable<T> {
      */
     <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector);
 
+    /**
+     * <P>Synchronously executes a runnable task<P>
+     *
+     * @param task task which takes no input and returns no output
+     */
     Composable<T> thenRunSynchronously(Task task);
 
+    /**
+     * <P>Synchronously executes a consumer task<P>
+     *
+     * @param task task which takes an input but returns no output
+     */
     Composable<T> thenConsumeSynchronously(ConsumingTask<T> task);
 
+    /**
+     * <P>Synchronously executes a producer task<P>
+     *
+     * @param task task which takes no input but returns an output
+     * @param <R>  type of task output
+     */
     <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task);
 
+    /**
+     * <P>Synchronously executes a transformer task<P>
+     *
+     * @param task task which takes an input and transforms it into an output
+     * @param <R>  type of task output
+     */
     <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task);
 
+    /**
+     * <P>Applies specified condition and continues only if it returns true.<P>
+     * <P>If condition returns false, you will receive {@link ComposerException} in the provided {@link ErrorStream}</P>
+     *
+     * @param validator function which provides condition to check
+     */
     Composable<T> thenCheckIf(Validator<? super T> validator);
 
+    /**
+     * Discontinues chaining of tasks and returns any awaiting upstream result
+     */
     T finish();
 }
