@@ -1,18 +1,20 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'signing'
+    id "com.jfrog.bintray" version "1.8.5"
 }
 
 group 'com.krupalshah'
 version '1.0.0'
 
-apply plugin: 'java'
+apply plugin: 'java-library'
 
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    jcenter()
 }
 
 java {
@@ -37,10 +39,6 @@ publishing {
                 name = 'Composer'
                 description = 'A library for composability of asynchronous tasks'
                 url = 'https://github.com/krupalshah/Composer'
-                /*properties = [
-                        myProp: "value",
-                        "prop.with.dots": "anotherValue"
-                ]*/
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -71,13 +69,21 @@ publishing {
     }
 }
 
-signing {
-    sign publishing.publications.mavenJava
-}
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['mavenJava']
 
-
-javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
+    pkg {
+        repo = 'Composer'
+        name = 'Composer'
+        userOrg = 'krupalshah55'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'git@github.com:krupalshah/Composer.git'
+        version {
+            name = '1.0.0'
+            desc = '1.0.0'
+            released  = new Date()
+        }
     }
 }
