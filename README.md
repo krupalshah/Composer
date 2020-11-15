@@ -17,8 +17,8 @@ It is compatible with Java 8 & above on all JVM based platforms.
 
 Most client-side mobile/web applications and backend services communicating with each other 
 require a framework in which interdependent asynchronous tasks can be glued together. 
-There are many libraries out there which allow doing this very effectively, 
-but some of them are either not available for all jvm based platforms or require a steep learning curve. 
+There are many libraries out there which allow doing this very effectively. 
+However, many of them are either not available for all platforms or require a steep learning curve. 
 The aim of this library is just to provide maximum achievable composability within the constraints of a minimal, easy to use programmable interface.
 
 Here is an example of how you can use composer to chain multiple interdependent tasks:
