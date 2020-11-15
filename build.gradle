@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.krupalshah'
-version = '1.0.1' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+version = '1.0.2' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
 
 apply plugin: 'java-library'
 
