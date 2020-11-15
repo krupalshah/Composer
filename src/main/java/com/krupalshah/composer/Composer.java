@@ -38,9 +38,9 @@ public class Composer<T> implements Composable<T> {
      * <p>Convenient factory method to create new composer instance.</p>
      * <p>Creates default {@link ExecutorService} using cached thread pool internally.</p>
      *
-     * @param task      task which returns a result to begin with.
+     * @param task      task which produces an output
      * @param errStream consumer for all errors.
-     * @param <R>       return type of task.
+     * @param <R>       type of task output.
      * @return new composer instance.
      */
     public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream) {
@@ -50,11 +50,12 @@ public class Composer<T> implements Composable<T> {
 
     /**
      * <p>Factory method to create new composer instance with provided executor service.</p>
+     * <P>Use only in the cases you need to specify custom executor service to execute tasks.</P>
      *
-     * @param task            task which returns a result to begin with.
-     * @param errStream       consume for all errors.
+     * @param task            task which produces an output
+     * @param errStream       consumer for all errors.
      * @param executorService executor service with custom thread pool to submit the task.
-     * @param <R>             return type of task.
+     * @param <R>             type of task output.
      * @return new composer instance.
      * @see #startWith(ProducingTask, ErrorStream)
      */
