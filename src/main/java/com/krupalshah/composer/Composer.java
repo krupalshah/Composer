@@ -50,7 +50,7 @@ public class Composer<T> implements Composable<T> {
 
     /**
      * <p>Factory method to create new composer instance with provided executor service.</p>
-     * <P>Use only in the cases you need to specify custom executor service to execute tasks.</P>
+     * <p>Use only in the cases you need to specify custom executor service to execute tasks.</p>
      *
      * @param task            task which produces an output
      * @param errStream       consumer for all errors.

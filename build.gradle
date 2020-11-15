@@ -1,5 +1,11 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
 group 'com.krupalshah'
-version '1.0'
+version '1.0.0'
 
 apply plugin: 'java'
 
@@ -7,4 +13,71 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'composer'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'Composer'
+                description = 'A library for composability of asynchronous tasks'
+                url = 'https://github.com/krupalshah/Composer'
+                /*properties = [
+                        myProp: "value",
+                        "prop.with.dots": "anotherValue"
+                ]*/
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'krupalshah'
+                        name = 'Krupal Shah'
+                        email = 'krupalshah55@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/krupalshah/Composer.git'
+                    developerConnection = 'git@github.com:krupalshah/Composer.git'
+                    url = 'https://github.com/krupalshah/Composer'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://github.com/krupalshah/Composer/tree/release"
+            def snapshotsRepoUrl = "https://github.com/krupalshah/Composer/tree/master"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
