@@ -21,7 +21,7 @@ There are many libraries out there which allow doing this very effectively,
 but some of them are either not available for all jvm based platforms or require a steep learning curve. 
 The aim of this library is just to provide maximum achievable composability within the constraints of a minimal, easy to use programmable interface.
 
-Here is an example of how you can use composer to execute multiple interdependent asynchronous tasks:
+Here is an example of how you can use composer to chain multiple interdependent tasks:
 ```
 Composer.startWith(() -> session.getCurrentUserId(), err -> err.printStackTrace())
         .thenTransform(userId -> userApi.getUserDetails(userId))
