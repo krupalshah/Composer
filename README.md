@@ -1,7 +1,7 @@
 # Composer 
 An easy way to compose chain of interdependent asynchronous tasks.
 
- #####!!! WORK IN PROGRESS
+> WORK IN PROGRESS
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 [![Download](https://api.bintray.com/packages/krupalshah55/Composer/Composer/images/download.svg) ](https://bintray.com/krupalshah55/Composer/Composer/_latestVersion)
