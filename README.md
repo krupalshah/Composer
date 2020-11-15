@@ -30,7 +30,7 @@ Composer.startWith(() -> session.getCurrentUserId(), err -> err.printStackTrace(
             response -> postsApi.getPosts(response.username), 
             response -> photosApi.getPhotos(response.username), 
             response -> notesApi.getNotes(response.username), 
-            (posts,photos,notes) -> new MergedResult(posts,photos,notes)
+            (posts,photos,notes) -> new CollectedResults(posts,photos,notes)
         )
         .thenConsumeSynchronously(results -> presentOnUI(results))
         .thenRun(() -> db.trackEvent("user_details"))
