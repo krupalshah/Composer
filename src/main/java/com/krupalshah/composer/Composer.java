@@ -18,7 +18,7 @@ import java.util.concurrent.*;
 
 /**
  * Implementation of {@link Composable} and serves as an entry point for all composer functions.
- * Use factory methods such as {@link #startWith(ProducingTask, ErrorStream)} to create new instance.
+ * Use factory methods such as {@link #startWith(ProducingTask, ErrorStream)} or {@link #startWith(Object, ErrorStream)} to create new instance.
  */
 public class Composer<T> implements Composable<T> {
 
@@ -35,7 +35,7 @@ public class Composer<T> implements Composable<T> {
     //region factory methods
 
     /**
-     * <p>Convenient factory method to create new composer instance.</p>
+     * <p>Convenient factory method to create new composer instance with asynchronous producer task.</p>
      * <p>Creates default {@link ExecutorService} using cached thread pool internally.</p>
      *
      * @param task      task which produces an output
@@ -49,7 +49,21 @@ public class Composer<T> implements Composable<T> {
     }
 
     /**
-     * <p>Factory method to create new composer instance with provided executor service.</p>
+     * <p>Convenient factory method to create new composer instance with some pre-known value.</p>
+     * <p>Creates default {@link ExecutorService} using cached thread pool internally.</p>
+     *
+     * @param value     pre-known value to begin with
+     * @param errStream consumer for all errors.
+     * @param <R>       type of task output.
+     * @return new composer instance.
+     */
+    public static <R> Composer<R> startWith(R value, ErrorStream errStream) {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        return startWith(value, errStream, executorService);
+    }
+
+    /**
+     * <p>Factory method to create new composer instance with asynchronous producer task and custom executor service.</p>
      * <p>Use only in the cases you need to specify custom executor service to execute tasks.</p>
      *
      * @param task            task which produces an output
@@ -62,6 +76,28 @@ public class Composer<T> implements Composable<T> {
     public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream, ExecutorService executorService) {
         try {
             Future<R> future = executorService.submit(task::produce);
+            return newComposer(future, errStream, executorService);
+        } catch (Throwable t) {
+            errStream.onError(t);
+            return newComposer(null, errStream, executorService);
+        }
+    }
+
+
+    /**
+     * <p>Factory method to create new composer instance with some pre-known value and custom executor service.</p>
+     * <p>Use only in the cases you need to specify custom executor service to execute tasks.</p>
+     *
+     * @param value           pre-known value to begin with
+     * @param errStream       consumer for all errors.
+     * @param executorService executor service with custom thread pool to submit the task.
+     * @param <R>             type of task output.
+     * @return new composer instance.
+     * @see #startWith(Object, ErrorStream)
+     */
+    public static <R> Composer<R> startWith(R value, ErrorStream errStream, ExecutorService executorService) {
+        try {
+            Future<R> future = new KnownFuture<>(value);
             return newComposer(future, errStream, executorService);
         } catch (Throwable t) {
             errStream.onError(t);
