@@ -82,8 +82,8 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'git@github.com:krupalshah/Composer.git'
         version {
-            name = '1.0.0'
-            desc = '1.0.0'
+            name = '1.0.2'
+            desc = '1.0.2'
             released  = new Date()
         }
     }
