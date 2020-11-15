@@ -1,5 +1,5 @@
 # Composer 
-An easy way to compose chain of interdependent asynchronous tasks.
+An easy way to compose chains of interdependent asynchronous tasks.
 
 > WORK IN PROGRESS
 
@@ -10,7 +10,7 @@ An easy way to compose chain of interdependent asynchronous tasks.
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-Composer helps you to execute chains of interdependent input/output 
+Composer helps you to execute multiple interdependent input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o with concurrency support using `java.util.concurrent` APIs. 
 It is compatible with Java 8 & above on all JVM based platforms.
