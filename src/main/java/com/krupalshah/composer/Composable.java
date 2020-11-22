@@ -8,7 +8,7 @@ import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
-import com.krupalshah.composer.function.tasks.Task;
+import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
 import com.krupalshah.composer.function.validator.Validator;
 
@@ -27,7 +27,7 @@ public interface Composable<T> {
      * @param task task which takes no input and returns no output
      * @return chained composable
      */
-    Composable<T> thenRun(Task task);
+    Composable<T> thenRun(SimpleTask task);
 
     /**
      * <p>Executes an asynchronous consumer task<p>
@@ -62,7 +62,7 @@ public interface Composable<T> {
      * @param tasks task which takes an input but returns no output
      * @return chained composable
      */
-    Composable<T> thenRunTogether(Set<Task> tasks);
+    Composable<T> thenRunTogether(Set<SimpleTask> tasks);
 
     /**
      * <p>Executes set of asynchronous consumer tasks concurrently and waits for all to complete.</p>
@@ -165,7 +165,7 @@ public interface Composable<T> {
      * @param task task which takes no input and returns no output
      * @return chained composable
      */
-    Composable<T> thenRunSynchronously(Task task);
+    Composable<T> thenRunSynchronously(SimpleTask task);
 
     /**
      * <p>Synchronously executes a consumer task</p>
@@ -200,12 +200,12 @@ public interface Composable<T> {
      * @param validator function which provides condition to check
      * @return chained composable
      */
-    Composable<T> thenCheckIf(Validator<? super T> validator);
+    Composable<T> thenContinueIf(Validator<? super T> validator);
 
     /**
      * <p>Discontinues chaining of tasks and returns any awaiting upstream result</p>
      *
      * @return output of the last task in discontinued chain
      */
-    T finish();
+    T thenFinish();
 }

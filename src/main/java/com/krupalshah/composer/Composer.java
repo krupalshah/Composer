@@ -7,7 +7,7 @@ import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
-import com.krupalshah.composer.function.tasks.Task;
+import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
 import com.krupalshah.composer.function.validator.Validator;
 import com.krupalshah.composer.util.KnownFuture;
@@ -43,7 +43,7 @@ public class Composer<T> implements Composable<T> {
      * @param <R>       type of task output.
      * @return new composer instance.
      */
-    public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream) {
+    public static <R> Composable<R> startWith(ProducingTask<R> task, ErrorStream errStream) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         return startWith(task, errStream, executorService);
     }
@@ -57,7 +57,7 @@ public class Composer<T> implements Composable<T> {
      * @param <R>       type of task output.
      * @return new composer instance.
      */
-    public static <R> Composer<R> startWith(R value, ErrorStream errStream) {
+    public static <R> Composable<R> startWith(R value, ErrorStream errStream) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         return startWith(value, errStream, executorService);
     }
@@ -73,7 +73,7 @@ public class Composer<T> implements Composable<T> {
      * @return new composer instance.
      * @see #startWith(ProducingTask, ErrorStream)
      */
-    public static <R> Composer<R> startWith(ProducingTask<R> task, ErrorStream errStream, ExecutorService executorService) {
+    public static <R> Composable<R> startWith(ProducingTask<R> task, ErrorStream errStream, ExecutorService executorService) {
         try {
             Future<R> future = executorService.submit(task::produce);
             return newComposer(future, errStream, executorService);
@@ -95,7 +95,7 @@ public class Composer<T> implements Composable<T> {
      * @return new composer instance.
      * @see #startWith(Object, ErrorStream)
      */
-    public static <R> Composer<R> startWith(R value, ErrorStream errStream, ExecutorService executorService) {
+    public static <R> Composable<R> startWith(R value, ErrorStream errStream, ExecutorService executorService) {
         try {
             Future<R> future = new KnownFuture<>(value);
             return newComposer(future, errStream, executorService);
@@ -108,7 +108,7 @@ public class Composer<T> implements Composable<T> {
 
     //region public API
     @Override
-    public Composable<T> thenRun(Task task) {
+    public Composable<T> thenRun(SimpleTask task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -147,11 +147,11 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenRunTogether(Set<Task> tasks) {
+    public Composable<T> thenRunTogether(Set<SimpleTask> tasks) {
         return chainWith(() -> {
             await();
             CountDownLatch latch = newLatch(tasks.size());
-            for (Task task : tasks) {
+            for (SimpleTask task : tasks) {
                 async(() -> countdownTask(() -> uncheckedTask(task), latch));
             }
             latch.await();
@@ -295,10 +295,10 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenRunSynchronously(Task task) {
+    public Composable<T> thenRunSynchronously(SimpleTask task) {
         return chainWith(() -> {
             await();
-            task.run();
+            task.execute();
             return this;
         });
     }
@@ -333,7 +333,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenCheckIf(Validator<? super T> validator) {
+    public Composable<T> thenContinueIf(Validator<? super T> validator) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -348,7 +348,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public T finish() {
+    public T thenFinish() {
         try {
             return await();
         } catch (Throwable t) {
@@ -419,9 +419,9 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
-    private void uncheckedTask(Task task) {
+    private void uncheckedTask(SimpleTask task) {
         try {
-            task.run();
+            task.execute();
         } catch (Exception e) {
             throw new ComposerException(e);
         }
