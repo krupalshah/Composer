@@ -12,7 +12,7 @@ An easy way to compose resilient chains of interdependent asynchronous tasks.
 
 `Composer` helps you to execute multiple interdependent input/output 
 tasks such as webservice calls, database read/writes 
-and file i/o together with concurrency support using `java.util.concurrent` APIs. 
+and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
 It is compatible with Java 8 & above on all JVM based platforms.
 
 Most client-side mobile/web applications and backend services communicating with each other 
@@ -38,7 +38,7 @@ Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
         .thenRun(() -> analyticsDb.trackEvent("get_twitter_details"))
         .thenFinish();
 ``` 
-Find detailed usage information under [Getting Started](#getting-started) section.
+For detailed usage information, please refer [Getting Started](#getting-started) section.
     
 ### Adding Dependency
 - Gradle:
@@ -76,7 +76,7 @@ Use `startWith()` to create your first `Composable` like below:
 ```java
 Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 ```
-The first param requires something as a first input, or a task which produces the same.<br/>
+The first param requires something as an input, or a task which produces the same.<br/>
 The second param `ErrorStream` receives any errors during execution.<br/>
 
 Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
@@ -89,7 +89,7 @@ In the context of `Composer`, a `task` can be anything to run. It may take somet
 - Use `thenProduce...` methods for the task which does not take anything as an input but returns some output. 
 - Use `thenTransform...` methods for the task which takes something as an input and converts it into some output.
 
-For example, consider a very straightforward scenario in which some independent data is fetched from remote webservice, converted into csv format, written to a file, and a message is printed to the console when all of this is done.<br/>
+For example, consider a very straightforward scenario in which some independent data is to be fetched from remote webservice, converted into csv format, written to a file, and a message is to be printed to the console when all of this is done.<br/>
 
 Given this information, a chain can be as written as below:
 
@@ -98,13 +98,13 @@ Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
     .thenTransform(response -> converter.convertToCsv(response.data))
     .thenConsume(csv -> writer.writeCsvFile(csv))
     .thenRun(() -> logger.log("DONE"))
-    .thenFinish()
+    .thenFinish();
 ```
 
 #### Executing Multiple Tasks Concurrently
-Different variants of above methods are available to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed concurrently. The order of execution is never guaranteed.<br/>
+Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed concurrently. The order of execution is never guaranteed.<br/>
     
-For example, consider a slight modificaion in above scenario where converted csv is persisted in the database along with writing to a file.<br/> 
+For example, consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
 
 In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
 
@@ -118,14 +118,14 @@ Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
         return tasks;  //both will be executed concurrently
     })
     .thenRun(() -> logger.log("DONE"))
-    .thenFinish()
+    .thenFinish();
 ```
 
 In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
     
 Such tasks will require a `Collector` to be passed as last param to collect outputs produced. A `Collector` returns something which can hold results from multiple output producing tasks (can be a simple `pojo` or some `collection`).<br/>
 
-For example, consider a slight modification in the first scenario where data is converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods like below:
+For example, consider a slight modification in the first scenario where data is to be converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods and collect results like below:
 
 ```java
 Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
@@ -143,15 +143,15 @@ Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
             return tasks;
         })
     .thenRun(() -> logger.log("DONE"))
-    .thenFinish()
+    .thenFinish();
 ```
 
-#### Validating Output
-A task input must be non-null. Any task in a chain that receives `null` as an input will result in discontinuing further execution.
+#### Validating Task Output
+A task output must be `non-null`. Any task in a chain that receives `null` as an input will discontinue further execution.
     
-Use `thenContinueIf()` to validate task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and `thenFinish` will return null as a final result in that case.
+Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and `thenFinish` will return `null` as a final result.
     
-For example, in the first scenario, consider that you want to check the status and size of the data in response before converting it to csv:
+For example, in the first scenario, consider that you want to check the status and size of the data in response before converting to csv:
 
 ```java
 Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
@@ -159,16 +159,17 @@ Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
     .thenTransform(data -> converter.convertToCsv(data))
     .thenConsume(csv -> writer.writeCsvFile(csv))
     .thenRun(() -> logger.log("DONE"))
-    .thenFinish()
+    .thenFinish();
 ```    
      
-#### Executing Synchronously
-By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method is being called (in most cases - the application main thread), synchronous variants of above methods can be used like below:
+#### Executing Tasks Synchronously
+By default, all tasks will be executed asynchronously.<br/>
+If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `then...Synchronously` can be used like below:
 
 ```java
 Composer.startWith(() -> produceSomething(), err-> err.printStackTrace())
     .thenConsumeSynchronously(data -> showOnUI(data))
-    .thenFinish()
+    .thenFinish();
 ```
 
 #### Providing Custom ExecutorService
@@ -180,13 +181,13 @@ Composer.startWith(() -> produceSomething(), err-> err.printStackTrace(), custom
 
 ### Sample [TBD]
 - Standalone:
-    - Standalone demo is available under gradle module `:sample`.
+    - Standalone demo is available under module `:sample`.
 - Web:
-    - Spring Boot demo is available under gradle module `:sample-web`.
+    - Spring Boot demo is available under module `:sample-web`.
 - Mobile:
     - Android demos are available in 
-        - Java under gradle module `:sample-mobile-java`.
-        - Kotlin under gradle module `:sample-mobile-kotlin`.
+        - Java under module `:sample-mobile-java`.
+        - Kotlin under module `:sample-mobile-kotlin`.
     
 ### Licence
 ```
