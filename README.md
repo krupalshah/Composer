@@ -78,7 +78,7 @@ Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 The first param requires something as an input, or a task which produces the same.<br/>
 The second param `ErrorStream` receives any errors during execution.<br/>
 
-Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
+Use `thenFinish()` to discontinue further chaining and return last awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining Tasks
 In the context of Composer, a `task` can be anything to be run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
