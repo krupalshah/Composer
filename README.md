@@ -44,7 +44,7 @@ Find detailed usage information under [Getting Started](#getting-started) sectio
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.2'
+    implementation 'com.krupalshah:composer:1.0.3'
 }
 ```
 
@@ -53,14 +53,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.2'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.3'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
