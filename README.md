@@ -94,7 +94,7 @@ For example, consider a very straightforward scenario in which some independent 
 Given this information, a chain can be as written as below:
 
 ```java
-Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
     .thenTransform(response -> converter.convertToCsv(response.data))
     .thenConsume(csv -> writer.writeCsvFile(csv))
     .thenRun(() -> logger.log("DONE"))
@@ -109,7 +109,7 @@ For example, consider a slight modification in above scenario where converted cs
 In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
 
 ```java
-Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
     .thenTransform(response -> converter.convertToCsv(response.data))
     .thenConsumeTogether(() -> { 
         Set<ConsumingTask> tasks = new LinkedHashSet<>();
@@ -128,7 +128,7 @@ Such tasks will require a `Collector` to be passed as last param to collect outp
 For example, consider a slight modification in the first scenario where data is to be converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods and collect results like below:
 
 ```java
-Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
     .thenTransformTogether(
             response -> converter.convertToCsv(response.data), 
             response -> converter.convertToXml(response.data), 
@@ -154,7 +154,7 @@ Use `thenContinueIf()` to validate the task output before it is used as an input
 For example, in the first scenario, consider that you want to check the status and size of the data in response before converting to csv:
 
 ```java
-Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
     .thenContinueIf(response -> response.status.isOk() && !response.data.isEmpty()) //this will discontinue further execution if the specified condition returns false.
     .thenTransform(data -> converter.convertToCsv(data))
     .thenConsume(csv -> writer.writeCsvFile(csv))
@@ -166,7 +166,7 @@ Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
 By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `then...Synchronously` can be used like below:
 
 ```java
-Composer.startWith(() -> produceSomething(), err-> err.printStackTrace())
+Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
     .thenConsumeSynchronously(data -> showOnUI(data))
     .thenFinish();
 ```
@@ -175,7 +175,7 @@ Composer.startWith(() -> produceSomething(), err-> err.printStackTrace())
 Finally, `Composer` uses an `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
 
 ```java
-Composer.startWith(() -> produceSomething(), err-> err.printStackTrace(), customExecutorService)
+Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), customExecutorService)
 ```
 
 ### Sample [TBD]
