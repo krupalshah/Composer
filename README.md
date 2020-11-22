@@ -163,7 +163,7 @@ Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
 ```    
      
 #### Executing Synchronous Task
-By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `then...Synchronously` can be used like below:
+By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `then...Synchronously()` can be used like below:
 
 ```java
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
