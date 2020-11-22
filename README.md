@@ -22,7 +22,7 @@ However, many of them are either not available for all platforms or require a st
 
 `Composer` does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, checking conditions or handling errors.
 
-Here is an example of how you can use `Composer` to build a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and interdependent on each other.
+Here is an example of how you can use `Composer` to create a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
