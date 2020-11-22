@@ -1,6 +1,6 @@
 package com.krupalshah.composer.function.tasks;
 
 @FunctionalInterface
-public interface Task {
-    void run() throws Exception;
+public interface SimpleTask {
+    void execute() throws Exception;
 }
