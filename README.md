@@ -81,12 +81,12 @@ The second param `ErrorStream` receives any errors during execution.<br/>
 Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining Tasks
-In the context of Composer, a `task` can be anything to run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
+In the context of Composer, a `task` can be anything to be run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
     
 - Use `thenRun...` methods for the task which takes no input and returns no output.
-- Use `thenConsume...` methods for the task which takes something as an input but returns no output. 
-- Use `thenProduce...` methods for the task which does not take anything as an input but returns some output. 
-- Use `thenTransform...` methods for the task which takes something as an input and converts it into some output.
+- Use `thenConsume...` methods for the task which takes an input but returns no output. 
+- Use `thenProduce...` methods for the task which takes no input but returns an output. 
+- Use `thenTransform...` methods for the task which takes an input and converts it into output.
 
 For example, consider a very straightforward scenario in which some independent data is to be fetched from remote webservice, converted into csv format, written to a file, and a message is to be printed to the console when all of this is done.<br/>
 
