@@ -68,87 +68,111 @@ Development snapshots are available in [JFrog artifactory](https://oss.jfrog.org
 
 ### Getting Started
 
-- The API consists of an interface `Composable` and its implementation `Composer`. The implementation serves as an entrypoint and returns `Composable` for all the tasks which are further chained.
+#### Overview
+The API consists of an interface `Composable` and its implementation `Composer`. The implementation serves as an entrypoint and returns `Composable` for all the tasks which are further chained.
 
-    - Use `startWith()` to create your first `Composable` like below:
+Use `startWith()` to create your first `Composable` like below:
+
 ```java
 Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 ```
-    The first param requires something as a first input, or a task which produces the same.<br/>
-    The second param `ErrorStream` receives any errors during execution.
-   
-    - Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith()` and `thenFinish()`, chain your tasks according to their dependencies on others.
-<br/>
-- In the context of `Composer`, a `task` can be anything to run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
-    
-    - Use `thenRun...` methods for the task which takes no input and returns no output.
-    - Use `thenConsume...` methods for the task which takes something as an input but returns no output. 
-    - Use `thenProduce...` methods for the task which does not take anything as an input but returns some output. 
-    - Use `thenTransform...` methods for the task which takes something as an input and converts it into some output.
+The first param requires something as a first input, or a task which produces the same.<br/>
+The second param `ErrorStream` receives any errors during execution.<br/>
 
-    For example, consider a very straightforward scenario in which some independent data is fetched from db, converted into csv format, written to a file, and a message is printed to the console when all of this is done.<br/> 
+Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
+
+#### Chaining Tasks
+In the context of `Composer`, a `task` can be anything to run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
     
-    Given this information, a chain can be as written as below:
+- Use `thenRun...` methods for the task which takes no input and returns no output.
+- Use `thenConsume...` methods for the task which takes something as an input but returns no output. 
+- Use `thenProduce...` methods for the task which does not take anything as an input but returns some output. 
+- Use `thenTransform...` methods for the task which takes something as an input and converts it into some output.
+
+For example, consider a very straightforward scenario in which some independent data is fetched from remote webservice, converted into csv format, written to a file, and a message is printed to the console when all of this is done.<br/>
+
+Given this information, a chain can be as written as below:
 
 ```java
-Composer.startWith(() -> db.fetchData(), err-> err.printStackTrace())
-    .thenTransform(data -> converter.convertToCsv(data))
+Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+    .thenTransform(response -> converter.convertToCsv(response.data))
     .thenConsume(csv -> writer.writeCsvFile(csv))
     .thenRun(() -> logger.log("DONE"))
     .thenFinish()
 ```
-<br/>
-- Different variants of above methods are available to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed concurrently. The order of execution is never guaranteed.<br/>
+
+#### Executing Multiple Tasks Concurrently
+Different variants of above methods are available to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed concurrently. The order of execution is never guaranteed.<br/>
     
-    For example, consider a slight modificaion in above scenario where converted csv is sent via some webservice along with writing to a file.<br/> 
-    
-    In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
+For example, consider a slight modificaion in above scenario where converted csv is persisted in the database along with writing to a file.<br/> 
+
+In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
 
 ```java
-Composer.startWith(() -> db.fetchData(), err-> err.printStackTrace())
-    .thenTransform(data -> converter.convertToCsv(data))
-    .thenConsumeTogether(() -> {
+Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+    .thenTransform(response -> converter.convertToCsv(response.data))
+    .thenConsumeTogether(() -> { 
         Set<ConsumingTask> tasks = new LinkedHashSet<>();
         tasks.add(csv -> writer.writeCsvFile(csv));
-        tasks.add(csv -> service.sendSomewhere(csv));
-        return tasks; 
+        tasks.add(csv -> db.storeCsv(csv));
+        return tasks;  //both will be executed concurrently
     })
     .thenRun(() -> logger.log("DONE"))
     .thenFinish()
 ```
-<br/>
-- In the cases where task produces some output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
+
+In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
     
-    Such tasks will also require a `Collector` as last param to collect produced multiple outputs. A `Collector` returns something which can hold results from multiple output producing tasks (can be a simple `pojo` or some `collection`).<br/>
-    
-    For example, consider a slight modification in first scenario where data is converted into multiple formats such as csv and json. In that case, we can use concurrent variants of above methods like below:
+Such tasks will require a `Collector` to be passed as last param to collect outputs produced. A `Collector` returns something which can hold results from multiple output producing tasks (can be a simple `pojo` or some `collection`).<br/>
+
+For example, consider a slight modification in the first scenario where data is converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods like below:
 
 ```java
-Composer.startWith(() -> db.fetchData(), err-> err.printStackTrace())
+Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
     .thenTransformTogether(
-            data -> converter.convertToCsv(data), 
-            data -> converter.convertToJson(), 
-            (csv,json) -> new CollectedData(csv,json)
+            response -> converter.convertToCsv(response.data), 
+            response -> converter.convertToXml(response.data), 
+            response -> converter.convertToYaml(response.data), 
+            (csv,xml,yaml) -> new CollectedData(csv,xml,yaml) //CollectedData is a pojo returned from collector to hold outputs from concurrently executing tasks
     )
     .thenConsumeTogether(() -> {
             Set<ConsumingTask> tasks = new LinkedHashSet<>();
             tasks.add(collectedData -> writer.writeCsvFile(collectedData.csv));
-            tasks.add(collectedData -> writer.writeJsonFile(collectedData.json));
+            tasks.add(collectedData -> writer.writeXmlFile(collectedData.xml));
+            tasks.add(collectedData -> writer.writeYamlFile(collectedData.yaml));
             return tasks;
         })
     .thenRun(() -> logger.log("DONE"))
     .thenFinish()
 ```
-<br/>
-- By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method is being called (in most cases - application main thread), synchronous variants of above methods can be used like below:
+
+#### Validating Output
+A task input must be non-null. Any task in a chain that receives `null` as an input will result in discontinuing further execution.
+    
+Use `thenContinueIf()` to validate task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and `thenFinish` will return null as a final result in that case.
+    
+For example, in the first scenario, consider that you want to check the status and size of the data in response before converting it to csv:
+
+```java
+Composer.startWith(() -> api.fetchData(), err-> err.printStackTrace())
+    .thenContinueIf(response -> response.status.isOk() && !response.data.isEmpty()) //this will discontinue further execution if the specified condition returns false.
+    .thenTransform(data -> converter.convertToCsv(data))
+    .thenConsume(csv -> writer.writeCsvFile(csv))
+    .thenRun(() -> logger.log("DONE"))
+    .thenFinish()
+```    
+     
+#### Executing Synchronously
+By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method is being called (in most cases - the application main thread), synchronous variants of above methods can be used like below:
 
 ```java
 Composer.startWith(() -> produceSomething(), err-> err.printStackTrace())
     .thenConsumeSynchronously(data -> showOnUI(data))
     .thenFinish()
 ```
-<br/>
-- Finally, `Composer` uses `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
+
+#### Providing Custom ExecutorService
+Finally, `Composer` uses `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
 
 ```java
 Composer.startWith(() -> produceSomething(), err-> err.printStackTrace(), customExecutorService)
