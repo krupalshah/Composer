@@ -172,7 +172,7 @@ Composer.startWith(() -> produceSomething(), err-> err.printStackTrace())
 ```
 
 #### Providing Custom ExecutorService
-Finally, `Composer` uses `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
+Finally, `Composer` uses an `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
 
 ```java
 Composer.startWith(() -> produceSomething(), err-> err.printStackTrace(), customExecutorService)
