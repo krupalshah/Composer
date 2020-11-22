@@ -10,7 +10,7 @@ An easy way to compose resilient chains of interdependent asynchronous tasks.
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-`Composer` helps you to execute multiple interdependent input/output 
+Composer helps you to execute multiple interdependent input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
 It is compatible with Java 8 & above on all JVM based platforms.
@@ -20,9 +20,9 @@ require a framework in which interdependent asynchronous tasks can be glued toge
 There are many libraries out there which allow doing this very effectively. 
 However, many of them are either not available for all platforms or require a steep learning curve. 
 
-`Composer` does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, checking conditions or handling errors.
+Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, checking conditions or handling errors.
 
-Here is an example of how you can use `Composer` to create a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
+Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
@@ -82,7 +82,7 @@ The second param `ErrorStream` receives any errors during execution.<br/>
 Use `thenFinish()` to discontinue further chaining and return any awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining Tasks
-In the context of `Composer`, a `task` can be anything to run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
+In the context of Composer, a `task` can be anything to run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Based on this, following methods can be used to chain one or more tasks:
     
 - Use `thenRun...` methods for the task which takes no input and returns no output.
 - Use `thenConsume...` methods for the task which takes something as an input but returns no output. 
@@ -172,7 +172,7 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
 ```
 
 #### Providing Custom ExecutorService
-Finally, `Composer` uses an `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
+Finally, Composer uses an `ExecutorService` and creates cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
 
 ```java
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), customExecutorService)
