@@ -132,13 +132,13 @@ Composer.startWith(() -> api.fetchData(), err -> err.printStackTrace())
             response -> converter.convertToCsv(response.data), 
             response -> converter.convertToXml(response.data), 
             response -> converter.convertToYaml(response.data), 
-            (csv,xml,yaml) -> new CollectedData(csv,xml,yaml) //CollectedData is a pojo returned from collector to hold outputs from concurrently executing tasks
+            (csv,xml,yaml) -> new ConvertedData(csv,xml,yaml) //ConvertedData is a pojo returned from collector to hold outputs from concurrently executing tasks
     )
     .thenConsumeTogether(() -> {
             Set<ConsumingTask> tasks = new LinkedHashSet<>();
-            tasks.add(collectedData -> writer.writeCsvFile(collectedData.csv));
-            tasks.add(collectedData -> writer.writeXmlFile(collectedData.xml));
-            tasks.add(collectedData -> writer.writeYamlFile(collectedData.yaml));
+            tasks.add(convertedData -> writer.writeCsvFile(convertedData.csv));
+            tasks.add(convertedData -> writer.writeXmlFile(convertedData.xml));
+            tasks.add(convertedData -> writer.writeYamlFile(convertedData.yaml));
             return tasks;
         })
     .thenRun(() -> logger.log("DONE"))
