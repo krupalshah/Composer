@@ -150,13 +150,17 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenRunTogether(Set<SimpleTask> tasks) {
         return chainWith(() -> {
-            awaitUpstream();
-            CountDownLatch latch = newLatch(tasks.size());
-            for (SimpleTask task : tasks) {
-                asyncTask(() -> latchedTask(() -> uncheckedTask(task), latch));
-            }
-            latch.await();
-            return this;
+            T upstream = awaitUpstream();
+            if (upstream == null) return switchTo(null);
+
+            Future<T> resultFuture = asyncStep(() -> uncheckedTask(() -> {
+                CountDownLatch latch = newLatch(tasks.size());
+                for (SimpleTask task : tasks) {
+                    asyncTask(() -> latchedTask(() -> uncheckedTask(task), latch));
+                }
+                latch.await();
+            }), upstream);
+            return switchTo(resultFuture);
         });
     }
 
@@ -165,12 +169,15 @@ public class Composer<T> implements Composable<T> {
         return chainWith(() -> {
             T upstream = awaitUpstream();
             if (upstream == null) return switchTo(null);
-            CountDownLatch latch = newLatch(tasks.size());
-            for (ConsumingTask<T> task : tasks) {
-                asyncTask(() -> latchedTask(() -> uncheckedTask(task, upstream), latch));
-            }
-            latch.await();
-            return this;
+
+            Future<T> resultFuture = asyncStep(() -> uncheckedTask(() -> {
+                CountDownLatch latch = newLatch(tasks.size());
+                for (ConsumingTask<T> task : tasks) {
+                    asyncTask(() -> latchedTask(() -> uncheckedTask(task, upstream), latch));
+                }
+                latch.await();
+            }), upstream);
+            return switchTo(resultFuture);
         });
     }
 
@@ -395,6 +402,10 @@ public class Composer<T> implements Composable<T> {
 
     private <R> Future<R> asyncStep(Callable<R> step) {
         return STEP_EXECUTOR.submit(step);
+    }
+
+    private <R> Future<R> asyncStep(Runnable step, R result) {
+        return STEP_EXECUTOR.submit(step, result);
     }
 
     private <R> Future<R> asyncTask(Callable<R> task) {
