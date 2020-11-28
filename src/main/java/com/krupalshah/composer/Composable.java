@@ -203,9 +203,9 @@ public interface Composable<T> {
     Composable<T> thenContinueIf(Validator<? super T> validator);
 
     /**
-     * <p>Discontinues chaining of tasks and returns any awaiting upstream result</p>
+     * <p>Discontinues chaining of tasks and returns last upstream result</p>
      *
-     * @return output of the last task in discontinued chain
+     * @return output of the last producing task in the discontinued chain
      */
     T thenFinish();
 }
