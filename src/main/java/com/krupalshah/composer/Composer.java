@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  */
 public class Composer<T> implements Composable<T> {
 
-    private static final ExecutorService STEP_EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final ExecutorService PARENT_EXECUTOR = Executors.newSingleThreadExecutor();
     private final ExecutorService taskExecutor;
     private final Future<T> future;
     private final ErrorStream errStream;
@@ -111,9 +111,9 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenRun(SimpleTask task) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
-            Future<T> resultFuture = asyncTask(() -> uncheckedTask(task), upstream);
+            Future<T> resultFuture = async(() -> uncheckedTask(task), upstream);
             return switchTo(resultFuture);
         });
     }
@@ -121,9 +121,9 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenConsume(ConsumingTask<T> task) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
-            Future<T> resultFuture = asyncTask(() -> uncheckedTask(task, upstream), upstream);
+            Future<T> resultFuture = async(() -> uncheckedTask(task, upstream), upstream);
             return switchTo(resultFuture);
         });
     }
@@ -131,8 +131,8 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <R> Composable<R> thenProduce(ProducingTask<R> task) {
         return chainWith(() -> {
-            awaitUpstream();
-            Future<R> future = asyncTask(task::produce);
+            await();
+            Future<R> future = async(task::produce);
             return switchTo(future);
         });
     }
@@ -140,9 +140,9 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
-            Future<R> future = asyncTask(() -> task.transform(upstream));
+            Future<R> future = async(() -> task.transform(upstream));
             return switchTo(future);
         });
     }
@@ -150,13 +150,13 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenRunTogether(Set<SimpleTask> tasks) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Future<T> resultFuture = asyncStep(() -> uncheckedTask(() -> {
+            Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 for (SimpleTask task : tasks) {
-                    asyncTask(() -> latchedTask(() -> uncheckedTask(task), latch));
+                    async(() -> latchedTask(() -> uncheckedTask(task), latch));
                 }
                 latch.await();
             }), upstream);
@@ -167,13 +167,13 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenConsumeTogether(Set<ConsumingTask<T>> tasks) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Future<T> resultFuture = asyncStep(() -> uncheckedTask(() -> {
+            Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 for (ConsumingTask<T> task : tasks) {
-                    asyncTask(() -> latchedTask(() -> uncheckedTask(task, upstream), latch));
+                    async(() -> latchedTask(() -> uncheckedTask(task, upstream), latch));
                 }
                 latch.await();
             }), upstream);
@@ -184,13 +184,13 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, R> Composable<R> thenProduceTogether(Set<ProducingTask<? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            awaitUpstream();
+            await();
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 Set<Future<? extends S>> futures = new LinkedHashSet<>();
                 for (ProducingTask<? extends S> task : tasks) {
-                    Future<? extends S> future = asyncTask(() -> latchedTask(task::produce, latch));
+                    Future<? extends S> future = async(() -> latchedTask(task::produce, latch));
                     futures.add(future);
                 }
                 latch.await();
@@ -209,12 +209,12 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, U, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            awaitUpstream();
+            await();
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(2);
-                Future<? extends S> future1 = asyncTask(() -> latchedTask(task1::produce, latch));
-                Future<? extends U> future2 = asyncTask(() -> latchedTask(task2::produce, latch));
+                Future<? extends S> future1 = async(() -> latchedTask(task1::produce, latch));
+                Future<? extends U> future2 = async(() -> latchedTask(task2::produce, latch));
                 latch.await();
 
                 S result1 = future1.get();
@@ -228,13 +228,13 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, ProducingTask<? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            awaitUpstream();
+            await();
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(3);
-                Future<? extends S> future1 = asyncTask(() -> latchedTask(task1::produce, latch));
-                Future<? extends U> future2 = asyncTask(() -> latchedTask(task2::produce, latch));
-                Future<? extends V> future3 = asyncTask(() -> latchedTask(task3::produce, latch));
+                Future<? extends S> future1 = async(() -> latchedTask(task1::produce, latch));
+                Future<? extends U> future2 = async(() -> latchedTask(task2::produce, latch));
+                Future<? extends V> future3 = async(() -> latchedTask(task3::produce, latch));
                 latch.await();
 
                 S result1 = future1.get();
@@ -249,14 +249,14 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, R> Composable<R> thenTransformTogether(Set<TransformingTask<? super T, ? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 Set<Future<? extends S>> futures = new LinkedHashSet<>();
                 for (TransformingTask<? super T, ? extends S> task : tasks) {
-                    Future<? extends S> future = asyncTask(() -> latchedTask(() -> task.transform(upstream), latch));
+                    Future<? extends S> future = async(() -> latchedTask(() -> task.transform(upstream), latch));
                     futures.add(future);
                 }
                 latch.await();
@@ -275,13 +275,13 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, U, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(2);
-                Future<? extends S> future1 = asyncTask(() -> latchedTask(() -> task1.transform(upstream), latch));
-                Future<? extends U> future2 = asyncTask(() -> latchedTask(() -> task2.transform(upstream), latch));
+                Future<? extends S> future1 = async(() -> latchedTask(() -> task1.transform(upstream), latch));
+                Future<? extends U> future2 = async(() -> latchedTask(() -> task2.transform(upstream), latch));
                 latch.await();
 
                 S result1 = future1.get();
@@ -295,14 +295,14 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Future<R> resultFuture = asyncStep(() -> {
+            Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(3);
-                Future<? extends S> future1 = asyncTask(() -> latchedTask(() -> task1.transform(upstream), latch));
-                Future<? extends U> future2 = asyncTask(() -> latchedTask(() -> task2.transform(upstream), latch));
-                Future<? extends V> future3 = asyncTask(() -> latchedTask(() -> task3.transform(upstream), latch));
+                Future<? extends S> future1 = async(() -> latchedTask(() -> task1.transform(upstream), latch));
+                Future<? extends U> future2 = async(() -> latchedTask(() -> task2.transform(upstream), latch));
+                Future<? extends V> future3 = async(() -> latchedTask(() -> task3.transform(upstream), latch));
                 latch.await();
 
                 S result1 = future1.get();
@@ -317,7 +317,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenRunSynchronously(SimpleTask task) {
         return chainWith(() -> {
-            awaitUpstream();
+            await();
             task.execute();
             return this;
         });
@@ -326,7 +326,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenConsumeSynchronously(ConsumingTask<T> task) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
             task.consume(upstream);
             return this;
@@ -336,7 +336,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task) {
         return chainWith(() -> {
-            awaitUpstream();
+            await();
             R result = task.produce();
             return switchTo(new KnownFuture<>(result));
         });
@@ -345,7 +345,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
             R result = task.transform(upstream);
             return switchTo(new KnownFuture<>(result));
@@ -355,7 +355,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public Composable<T> thenContinueIf(Validator<? super T> validator) {
         return chainWith(() -> {
-            T upstream = awaitUpstream();
+            T upstream = await();
             if (upstream == null) return switchTo(null);
             if (validator.validate(upstream)) {
                 return this;
@@ -370,7 +370,7 @@ public class Composer<T> implements Composable<T> {
     @Override
     public T thenFinish() {
         try {
-            return awaitUpstream();
+            return await();
         } catch (Throwable t) {
             errStream.onError(t);
             return null;
@@ -400,27 +400,27 @@ public class Composer<T> implements Composable<T> {
         }
     }
 
-    private <R> Future<R> asyncStep(Callable<R> step) {
-        return STEP_EXECUTOR.submit(step);
+    private <R> Future<R> deferred(Callable<R> step) {
+        return PARENT_EXECUTOR.submit(step);
     }
 
-    private <R> Future<R> asyncStep(Runnable step, R result) {
-        return STEP_EXECUTOR.submit(step, result);
+    private <R> Future<R> deferred(Runnable step, R result) {
+        return PARENT_EXECUTOR.submit(step, result);
     }
 
-    private <R> Future<R> asyncTask(Callable<R> task) {
+    private <R> Future<R> async(Callable<R> task) {
         return taskExecutor.submit(task);
     }
 
-    private <R> Future<R> asyncTask(Runnable task, R result) {
+    private <R> Future<R> async(Runnable task, R result) {
         return taskExecutor.submit(task, result);
     }
 
-    private void asyncTask(Runnable task) {
+    private void async(Runnable task) {
         taskExecutor.submit(task);
     }
 
-    private T awaitUpstream() throws InterruptedException, ExecutionException {
+    private T await() throws InterruptedException, ExecutionException {
         if (this.future == null) {
             return null;
         }

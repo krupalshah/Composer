@@ -78,7 +78,7 @@ Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 The first param requires something as an input, or a task which produces the same.<br/>
 The second param `ErrorStream` receives any error during execution.<br/>
 
-Use `thenFinish()` to discontinue further chaining and return last awaiting task result. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
+Use `thenFinish()` to discontinue further chaining and return last result produced. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining Tasks
 A `Task` can be anything to be run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Following methods can be used to chain one or more tasks:
@@ -114,10 +114,10 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
         .thenFinish();
 ```
 
-Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If you want to execute something synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
+Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
 
 #### Executing Multiple Tasks Concurrently
-Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed concurrently. The order of execution is never guaranteed.<br/>
+Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
     
 For example, consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
 
