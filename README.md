@@ -43,7 +43,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.3'
+    implementation 'com.krupalshah:composer:0.0.1'
 }
 ```
 
@@ -52,14 +52,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.3</version>
+  <version>0.0.1</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.3'>
+<dependency org='com.krupalshah' name='composer' rev='0.0.1'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
