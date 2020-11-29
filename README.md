@@ -194,14 +194,6 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), custo
 ```
 
 ### Sample [TBD]
-- Standalone:
-    - Standalone demo is available under module `:sample`.
-- Web:
-    - Spring Boot demo is available under module `:sample-web`.
-- Mobile:
-    - Android demos are available in 
-        - Java under module `:sample-mobile-java`.
-        - Kotlin under module `:sample-mobile-kotlin`.
     
 ### Licence
 ```
