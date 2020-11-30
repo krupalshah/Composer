@@ -41,7 +41,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.0-RC2'
+    implementation 'com.krupalshah:composer:1.0.0-RC3'
 }
 ```
 
@@ -50,14 +50,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.0-RC2</version>
+  <version>1.0.0-RC3</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.0-RC2'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.0-RC3'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -115,7 +115,7 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
 Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
 
 #### Executing Multiple Tasks Concurrently
-Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a set of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
+Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
     
 For example, consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
 

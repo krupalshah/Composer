@@ -7,13 +7,14 @@ import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
 import com.krupalshah.composer.function.other.Supplier;
+import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
 import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
-import com.krupalshah.composer.function.other.Validator;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>Interface for composing chain of asynchronous tasks</p>
@@ -54,38 +55,38 @@ public interface Composable<T> {
      * @param <R>  type of task output
      * @return chained composable
      */
-    <R> Composable<R> thenTransform(TransformingTask<? super T, ? extends R> task);
+    <R> Composable<R> thenTransform(TransformingTask<T, R> task);
 
     /**
      * <p>Executes set of asynchronous runnable tasks concurrently and waits for all to complete.</p>
      * <p>The order of execution is never guaranteed.</p>
      *
-     * @param tasks task which takes an input but returns no output
+     * @param tasksSupplier supplier of tasks which takes an input but returns no output
      * @return chained composable
      */
-    Composable<T> thenRunTogether(Supplier<Set<SimpleTask>> tasksSupplier);
+    Composable<T> thenRunTogether(Supplier<Collection<SimpleTask>> tasksSupplier);
 
     /**
      * <p>Executes set of asynchronous consumer tasks concurrently and waits for all to complete.</p>
      * <p>The order of execution is never guaranteed.</p>
      *
-     * @param tasks task which takes an input but returns no output
+     * @param tasksSupplier supplier of tasks which takes an input but returns no output
      * @return chained composable
      */
-    Composable<T> thenConsumeTogether(Supplier<Set<ConsumingTask<T>>> tasksSupplier);
+    Composable<T> thenConsumeTogether(Supplier<Collection<ConsumingTask<T>>> tasksSupplier);
 
     /**
      * <p>Executes set of asynchronous producer tasks concurrently and waits for all to complete.</p>
      * <p>The order of execution is never guaranteed.</p>
      * <p>The order of results received to the collector is only guaranteed if the set implementation for tasks provided is an order one, such as {@link java.util.LinkedHashSet}</p>
      *
-     * @param tasks            task which takes no input but returns an output
+     * @param tasksSupplier    supplier of tasks which takes no input but returns an output
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of task output
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, R> Composable<R> thenProduceTogether(Supplier<Set<ProducingTask<? extends S>>> tasksSupplier, Collector<Set<? super S>, ? extends R> resultsCollector);
+    <S, R> Composable<R> thenProduceTogether(Supplier<Collection<ProducingTask<S>>> tasksSupplier, Collector<List<S>, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -99,7 +100,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector);
+    <S, U, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -115,20 +116,20 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<? extends S> task1, ProducingTask<? extends U> task2, ProducingTask<? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector);
+    <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<S, U, V, R> resultsCollector);
 
     /**
      * <p>Executes set of asynchronous transformer tasks concurrently and waits for all to complete.</p>
      * <p>The order of execution is never guaranteed.</p>
      * <p>The order of results received to the collector is only guaranteed if the set implementation for tasks provided is an order one, such as {@link java.util.LinkedHashSet}</p>
      *
-     * @param tasks            task which takes an input and transforms it into an output
+     * @param tasksSupplier    supplier of tasks which takes an input and transforms it into an output
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of task output
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, R> Composable<R> thenTransformTogether(Supplier<Set<TransformingTask<? super T, ? extends S>>> tasksSupplier, Collector<Set<? super S>, ? extends R> resultsCollector);
+    <S, R> Composable<R> thenTransformTogether(Supplier<Collection<TransformingTask<T, S>>> tasksSupplier, Collector<List<S>, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -142,7 +143,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, BiCollector<? super S, ? super U, ? extends R> resultsCollector);
+    <S, U, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -158,7 +159,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<? super T, ? extends S> task1, TransformingTask<? super T, ? extends U> task2, TransformingTask<? super T, ? extends V> task3, TriCollector<? super S, ? super U, ? super V, ? extends R> resultsCollector);
+    <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<S, U, V, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a runnable task</p>
@@ -192,7 +193,7 @@ public interface Composable<T> {
      * @param <R>  type of task output
      * @return chained composable
      */
-    <R> Composable<R> thenTransformSynchronously(TransformingTask<? super T, ? extends R> task);
+    <R> Composable<R> thenTransformSynchronously(TransformingTask<T, R> task);
 
     /**
      * <p>Applies specified condition and continues only if it returns true.</p>
@@ -201,7 +202,7 @@ public interface Composable<T> {
      * @param validator function which provides condition to check
      * @return chained composable
      */
-    Composable<T> thenContinueIf(Validator<? super T> validator);
+    Composable<T> thenContinueIf(Validator<T> validator);
 
     /**
      * <p>Discontinues chaining of tasks and returns last upstream result</p>
