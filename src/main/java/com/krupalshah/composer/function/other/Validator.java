@@ -1,4 +1,4 @@
-package com.krupalshah.composer.function.validator;
+package com.krupalshah.composer.function.other;
 
 @FunctionalInterface
 public interface Validator<T> {

@@ -5,12 +5,12 @@ import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
-import com.krupalshah.composer.function.supplier.Supplier;
+import com.krupalshah.composer.function.other.Supplier;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
 import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
-import com.krupalshah.composer.function.validator.Validator;
+import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.util.KnownFuture;
 
 import java.util.LinkedHashSet;
