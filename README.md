@@ -1,8 +1,6 @@
 # Composer 
 An easy way to build resilient chains of interdependent asynchronous tasks.
 
-> WORK IN PROGRESS
-
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 [![Download](https://api.bintray.com/packages/krupalshah55/Composer/Composer/images/download.svg) ](https://bintray.com/krupalshah55/Composer/Composer/_latestVersion)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7dde7d053cac44e88d762519ab50b2b1)](https://app.codacy.com/gh/krupalshah/Composer?utm_source=github.com&utm_medium=referral&utm_content=krupalshah/Composer&utm_campaign=Badge_Grade_Settings)
@@ -43,7 +41,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:0.0.1'
+    implementation 'com.krupalshah:composer:1.0.0-RC1'
 }
 ```
 
@@ -52,14 +50,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>0.0.1</version>
+  <version>1.0.0-RC1</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='0.0.1'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.0-RC1'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -193,16 +191,9 @@ Finally, Composer uses an `ExecutorService` that creates a cached thread pool in
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), customExecutorService)
 ```
 
-### Sample [TBD]
-- Standalone:
-    - Standalone demo is available under module `:sample`.
-- Web:
-    - Spring Boot demo is available under module `:sample-web`.
-- Mobile:
-    - Android demos are available in 
-        - Java under module `:sample-mobile-java`.
-        - Kotlin under module `:sample-mobile-kotlin`.
-    
+### Sample
+TBD. Contributions are welcome!
+
 ### Licence
 ```
 Copyright 2020 Krupal Shah

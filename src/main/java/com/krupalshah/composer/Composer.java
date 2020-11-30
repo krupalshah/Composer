@@ -360,8 +360,8 @@ public class Composer<T> implements Composable<T> {
             if (validator.validate(upstream)) {
                 return this;
             } else {
-                errStream.onError(new ComposerException(String.format("The upstream value %s is not valid as per the condition specified in given Validator %s! "
-                        + "Downstream execution will stop now.", upstream, validator)));
+                errStream.onError(new ComposerException(String.format("The upstream value: %s is not valid as per the condition specified in given validator: %s "
+                        + "\nDownstream execution will stop now.", upstream, validator)));
                 return switchTo(null);
             }
         });
