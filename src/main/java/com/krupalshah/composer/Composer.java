@@ -5,6 +5,7 @@ import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
+import com.krupalshah.composer.function.supplier.Supplier;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
 import com.krupalshah.composer.function.tasks.SimpleTask;
@@ -148,11 +149,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenRunTogether(Set<SimpleTask> tasks) {
+    public Composable<T> thenRunTogether(Supplier<Set<SimpleTask>> tasksSupplier) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
 
+            Set<SimpleTask> tasks = tasksSupplier.supply();
             Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 for (SimpleTask task : tasks) {
@@ -165,11 +167,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenConsumeTogether(Set<ConsumingTask<T>> tasks) {
+    public Composable<T> thenConsumeTogether(Supplier<Set<ConsumingTask<T>>> tasksSupplier) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
 
+            Set<ConsumingTask<T>> tasks = tasksSupplier.supply();
             Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 for (ConsumingTask<T> task : tasks) {
@@ -182,10 +185,11 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenProduceTogether(Set<ProducingTask<? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
+    public <S, R> Composable<R> thenProduceTogether(Supplier<Set<ProducingTask<? extends S>>> tasksSupplier, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
             await();
 
+            Set<ProducingTask<? extends S>> tasks = tasksSupplier.supply();
             Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 Set<Future<? extends S>> futures = new LinkedHashSet<>();
@@ -247,11 +251,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenTransformTogether(Set<TransformingTask<? super T, ? extends S>> tasks, Collector<Set<? super S>, ? extends R> resultsCollector) {
+    public <S, R> Composable<R> thenTransformTogether(Supplier<Set<TransformingTask<? super T, ? extends S>>> tasksSupplier, Collector<Set<? super S>, ? extends R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
 
+            Set<TransformingTask<? super T, ? extends S>> tasks = tasksSupplier.supply();
             Future<R> resultFuture = deferred(() -> {
                 CountDownLatch latch = newLatch(tasks.size());
                 Set<Future<? extends S>> futures = new LinkedHashSet<>();
