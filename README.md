@@ -190,8 +190,8 @@ To consume output from the last producing task, pass a `Consumer` to `thenFinish
 ```java
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
         .thenTranform(data -> convertToSomething(data))
-        .thenContinueIf(transformeData -> transformeData.isValid())
-        .thenFinish(transformeData -> consumeFinalResult(transformeData));
+        .thenContinueIf(convertedData -> convertedData.isValid())
+        .thenFinish(convertedData -> consumeFinalResult(convertedData));
 ```
 This makes it easier to relay chain result between components or use `observer` pattern if required.
 
