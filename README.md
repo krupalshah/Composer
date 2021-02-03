@@ -11,7 +11,7 @@ An easy way to build resilient chains of interdependent asynchronous tasks.
 Composer helps you to organize and execute multiple interdependent input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
-It is compatible with Java 8 & above on all JVM based platforms.
+It is compatible with Java 8 & above on all JVM based platforms including Android.
 
 Most client-side mobile/web applications and backend services communicating with each other 
 require a framework in which interdependent asynchronous tasks can be glued together. 
@@ -41,7 +41,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.0-M1'
+    implementation 'com.krupalshah:composer:1.0.0-M2'
 }
 ```
 
@@ -50,14 +50,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.0-M1</version>
+  <version>1.0.0-M2</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.0-M1'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.0-M2'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -76,7 +76,7 @@ Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 The first param requires something as an input, or a task which produces the same.<br/>
 The second param `ErrorStream` receives any error during execution.<br/>
 
-Use `thenFinish()` to discontinue further chaining and return last result produced. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
+Use `thenFinish()` to discontinue further chaining and complete the awaiting task execution. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining Tasks
 A `Task` can be anything to be run. It may take something as an input and/or return some output. It can be synchronous or asynchronous. Following methods can be used to chain one or more tasks:
@@ -162,7 +162,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
 #### Validating Task Output
 A task output must be `non-null`. Any task in a chain that receives `null` as an input will discontinue further execution.
     
-Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and `thenFinish` will return `null` as a final result.
+Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and downstream consuming tasks will receive `null` as a result.
     
 For example, in the first scenario, consider that you want to check the status and size of the data in response before converting to csv:
 
@@ -183,6 +183,17 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
         .thenConsumeSynchronously(data -> showOnUI(data))
         .thenFinish();
 ```
+
+#### Consuming Final Result
+To consume output from the last producing task, pass a `Consumer` to `thenFinish()` like below:
+
+```java
+Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
+        .thenTranform(data -> convertToSomething(data))
+        .thenContinueIf(transformeData -> transformeData.isValid())
+        .thenFinish(transformeData -> consumeFinalResult(transformeData));
+```
+This makes it easier to relay chain result between components or use `observer` pattern if required.
 
 #### Providing Custom ExecutorService
 Finally, Composer uses an `ExecutorService` that creates a cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
