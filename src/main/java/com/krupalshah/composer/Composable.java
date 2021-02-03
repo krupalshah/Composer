@@ -6,6 +6,7 @@ import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
+import com.krupalshah.composer.function.other.Consumer;
 import com.krupalshah.composer.function.other.Supplier;
 import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
@@ -205,9 +206,14 @@ public interface Composable<T> {
     Composable<T> thenContinueIf(Validator<T> validator);
 
     /**
-     * <p>Discontinues chaining of tasks and returns last upstream result</p>
-     *
-     * @return output of the last producing task in the discontinued chain
+     * <p>discontinues chaining of tasks and completes the awaiting task execution</p>
      */
-    T thenFinish();
+    void thenFinish();
+
+    /**
+     * <p>discontinues chaining of tasks, completes the awaiting task execution and supplies the last producing task result</p>
+     *
+     * @param upstreamResultConsumer consumer receiving an output of the last producing task in the discontinued chain
+     */
+    void thenFinish(Consumer<T> upstreamResultConsumer);
 }

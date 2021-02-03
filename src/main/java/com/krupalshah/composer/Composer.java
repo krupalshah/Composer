@@ -5,12 +5,13 @@ import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
 import com.krupalshah.composer.function.collector.TriCollector;
+import com.krupalshah.composer.function.other.Consumer;
 import com.krupalshah.composer.function.other.Supplier;
+import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
 import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
-import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.util.KnownFuture;
 
 import java.util.*;
@@ -372,12 +373,21 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public T thenFinish() {
+    public void thenFinish() {
         try {
-            return await();
+            await();
         } catch (Throwable t) {
             errStream.onError(t);
-            return null;
+        }
+    }
+
+    @Override
+    public void thenFinish(Consumer<T> upstreamResultConsumer) {
+        try {
+            upstreamResultConsumer.accept(await());
+        } catch (Throwable t) {
+            errStream.onError(t);
+            upstreamResultConsumer.accept(null);
         }
     }
     //endregion
