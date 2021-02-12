@@ -5,6 +5,7 @@ import com.krupalshah.composer.exception.ComposerException;
 import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
+import com.krupalshah.composer.function.collector.Expander;
 import com.krupalshah.composer.function.collector.TriCollector;
 import com.krupalshah.composer.function.other.Consumer;
 import com.krupalshah.composer.function.other.Supplier;
@@ -13,9 +14,11 @@ import com.krupalshah.composer.function.tasks.ConsumingTask;
 import com.krupalshah.composer.function.tasks.ProducingTask;
 import com.krupalshah.composer.function.tasks.SimpleTask;
 import com.krupalshah.composer.function.tasks.TransformingTask;
+import com.krupalshah.composer.util.Pair;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>Interface for composing chain of asynchronous tasks</p>
@@ -81,13 +84,13 @@ public interface Composable<T> {
      * <p>The order of execution is never guaranteed.</p>
      * <p>The order of results received to the collector is only guaranteed if the set implementation for tasks provided is an order one, such as {@link java.util.LinkedHashSet}</p>
      *
-     * @param tasksSupplier    supplier of tasks which takes no input but returns an output
-     * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of task output
      * @param <R>              type of collector output
+     * @param tasksSupplier    supplier of tasks which takes no input but returns an output
+     * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @return chained composable
      */
-    <S, R> Composable<R> thenProduceTogether(Supplier<Collection<ProducingTask<S>>> tasksSupplier, Collector<List<S>, R> resultsCollector);
+    <S, R> Composable<R> thenProduceTogether(Supplier<Collection<ProducingTask<S>>> tasksSupplier, Collector<T, List<S>, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -101,7 +104,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<S, U, R> resultsCollector);
+    <S, U, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<T, S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -117,20 +120,20 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<S, U, V, R> resultsCollector);
+    <S, U, V, R> Composable<R> thenProduceTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<T, S, U, V, R> resultsCollector);
 
     /**
      * <p>Executes set of asynchronous transformer tasks concurrently and waits for all to complete.</p>
      * <p>The order of execution is never guaranteed.</p>
      * <p>The order of results received to the collector is only guaranteed if the set implementation for tasks provided is an order one, such as {@link java.util.LinkedHashSet}</p>
      *
-     * @param tasksSupplier    supplier of tasks which takes an input and transforms it into an output
-     * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of task output
      * @param <R>              type of collector output
+     * @param tasksSupplier    supplier of tasks which takes an input and transforms it into an output
+     * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @return chained composable
      */
-    <S, R> Composable<R> thenTransformTogether(Supplier<Collection<TransformingTask<T, S>>> tasksSupplier, Collector<List<S>, R> resultsCollector);
+    <S, R> Composable<R> thenTransformTogether(Supplier<Collection<TransformingTask<T, S>>> tasksSupplier, Collector<T, List<S>, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -144,7 +147,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<S, U, R> resultsCollector);
+    <S, U, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<T, S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -160,7 +163,11 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<S, U, V, R> resultsCollector);
+    <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector);
+
+    <S> Composable<T> thenConsumeForEachTogether(Expander<T, Collection<S>> expander, ConsumingTask<S> task);
+
+    <S, U, R> Composable<R> thenTransformForEachTogether(Expander<T, Collection<S>> expander, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a runnable task</p>
