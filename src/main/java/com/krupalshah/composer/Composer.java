@@ -127,35 +127,6 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenConsume(ConsumingTask<T> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            if (upstream == null) return switchTo(null);
-            Future<T> resultFuture = async(() -> uncheckedTask(task, upstream), upstream);
-            return switchTo(resultFuture);
-        });
-    }
-
-    @Override
-    public <R> Composable<R> thenProduce(ProducingTask<R> task) {
-        return chainWith(() -> {
-            await();
-            Future<R> future = async(task::produce);
-            return switchTo(future);
-        });
-    }
-
-    @Override
-    public <R> Composable<R> thenTransform(TransformingTask<T, R> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            if (upstream == null) return switchTo(null);
-            Future<R> future = async(() -> task.transform(upstream));
-            return switchTo(future);
-        });
-    }
-
-    @Override
     public Composable<T> thenRunTogether(Supplier<Collection<SimpleTask>> tasksSupplier) {
         return chainWith(() -> {
             T upstream = await();
@@ -169,6 +140,25 @@ public class Composer<T> implements Composable<T> {
                 }
                 latch.await();
             }), upstream);
+            return switchTo(resultFuture);
+        });
+    }
+
+    @Override
+    public Composable<T> thenRunSynchronously(SimpleTask task) {
+        return chainWith(() -> {
+            await();
+            task.execute();
+            return this;
+        });
+    }
+
+    @Override
+    public Composable<T> thenConsume(ConsumingTask<T> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            if (upstream == null) return switchTo(null);
+            Future<T> resultFuture = async(() -> uncheckedTask(task, upstream), upstream);
             return switchTo(resultFuture);
         });
     }
@@ -192,7 +182,46 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenProduceTogether(Supplier<Collection<ProducingTask<S>>> tasksSupplier, Collector<T, List<S>, R> resultsCollector) {
+    public <S> Composable<T> thenConsumeForEachTogether(Expander<T, Collection<S>> expander, ConsumingTask<S> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            if (upstream == null) return switchTo(null);
+
+            Collection<S> collection = expander.expand(upstream);
+            if (collection == null) return switchTo(null);
+
+            Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
+                CountDownLatch latch = newLatch(collection.size());
+                for (S value : collection) {
+                    async(() -> latchedTask(() -> uncheckedTask(task, value), latch));
+                }
+                latch.await();
+            }), upstream);
+            return switchTo(resultFuture);
+        });
+    }
+
+    @Override
+    public Composable<T> thenConsumeSynchronously(ConsumingTask<T> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            if (upstream == null) return switchTo(null);
+            task.consume(upstream);
+            return this;
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenProduce(ProducingTask<R> task) {
+        return chainWith(() -> {
+            await();
+            Future<R> future = async(task::produce);
+            return switchTo(future);
+        });
+    }
+
+    @Override
+    public <S, R> Composable<R> thenProduceTogether(Supplier<Collection<ProducingTask<S>>> tasksSupplier, Collector<T, Set<S>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -207,7 +236,7 @@ public class Composer<T> implements Composable<T> {
                 }
                 latch.await();
 
-                List<S> results = new ArrayList<>();
+                Set<S> results = new LinkedHashSet<>();
                 for (Future<S> future : futures) {
                     S result = future.get();
                     results.add(result);
@@ -261,7 +290,26 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, R> Composable<R> thenTransformTogether(Supplier<Collection<TransformingTask<T, S>>> tasksSupplier, Collector<T, List<S>, R> resultsCollector) {
+    public <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task) {
+        return chainWith(() -> {
+            await();
+            R result = task.produce();
+            return switchTo(new KnownFuture<>(result));
+        });
+    }
+
+    @Override
+    public <R> Composable<R> thenTransform(TransformingTask<T, R> task) {
+        return chainWith(() -> {
+            T upstream = await();
+            if (upstream == null) return switchTo(null);
+            Future<R> future = async(() -> task.transform(upstream));
+            return switchTo(future);
+        });
+    }
+
+    @Override
+    public <S, R> Composable<R> thenTransformTogether(Supplier<Collection<TransformingTask<T, S>>> tasksSupplier, Collector<T, Set<S>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -277,7 +325,7 @@ public class Composer<T> implements Composable<T> {
                 }
                 latch.await();
 
-                List<S> results = new ArrayList<>();
+                Set<S> results = new LinkedHashSet<>();
                 for (Future<S> future : futures) {
                     S result = future.get();
                     results.add(result);
@@ -331,26 +379,6 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S> Composable<T> thenConsumeForEachTogether(Expander<T, Collection<S>> expander, ConsumingTask<S> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            if (upstream == null) return switchTo(null);
-
-            Collection<S> collection = expander.expand(upstream);
-            if (collection == null) return switchTo(null);
-
-            Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
-                CountDownLatch latch = newLatch(collection.size());
-                for (S value : collection) {
-                    async(() -> latchedTask(() -> uncheckedTask(task, value), latch));
-                }
-                latch.await();
-            }), upstream);
-            return switchTo(resultFuture);
-        });
-    }
-
-    @Override
     public <S, U, R> Composable<R> thenTransformForEachTogether(Expander<T, Collection<S>> expander, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
@@ -378,34 +406,6 @@ public class Composer<T> implements Composable<T> {
             });
             return switchTo(resultFuture);
 
-        });
-    }
-
-    @Override
-    public Composable<T> thenRunSynchronously(SimpleTask task) {
-        return chainWith(() -> {
-            await();
-            task.execute();
-            return this;
-        });
-    }
-
-    @Override
-    public Composable<T> thenConsumeSynchronously(ConsumingTask<T> task) {
-        return chainWith(() -> {
-            T upstream = await();
-            if (upstream == null) return switchTo(null);
-            task.consume(upstream);
-            return this;
-        });
-    }
-
-    @Override
-    public <R> Composable<R> thenProduceSynchronously(ProducingTask<R> task) {
-        return chainWith(() -> {
-            await();
-            R result = task.produce();
-            return switchTo(new KnownFuture<>(result));
         });
     }
 
@@ -442,7 +442,6 @@ public class Composer<T> implements Composable<T> {
             errStream.onError(t);
         }
     }
-    //endregion
 
     @Override
     public void thenFinish(Consumer<T> upstreamResultConsumer) {
@@ -453,6 +452,7 @@ public class Composer<T> implements Composable<T> {
             upstreamResultConsumer.accept(null);
         }
     }
+    //endregion
 
     private <R> Composer<R> switchTo(Future<R> resultFuture) {
         return newComposer(resultFuture, this.errStream, this.taskExecutor);
