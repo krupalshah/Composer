@@ -69,7 +69,7 @@ public interface Composable<T> {
     Composable<T> thenConsumeTogether(Supplier<Collection<ConsumingTask<T>>> tasksSupplier);
 
     /**
-     * <p>Transforms the upstream value to a collection, executes an asynchronous consumer task for each value in that collection concurrently and waits for all to complete</p>
+     * <p>Expands the upstream value to a collection, executes an asynchronous consumer task for each value in that collection concurrently and waits for all to complete</p>
      *
      * @param expander function which takes upstream result as an input and returns a collection from it
      * @param task     task to be run for each value in the collection returned from expander
@@ -200,7 +200,7 @@ public interface Composable<T> {
     <S, U, V, R> Composable<R> thenTransformTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector);
 
     /**
-     * <p>Transforms the upstream value to a collection, executes an asynchronous transformer task for each value in that collection concurrently and waits for all to complete</p>
+     * <p>Expands the upstream value to a collection, executes an asynchronous transformer task for each value in that collection concurrently and waits for all to complete</p>
      *
      * @param expander         function which takes upstream result as an input and returns a collection from it
      * @param task             task to be run for each value in the collection returned from expander
