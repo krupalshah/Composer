@@ -8,18 +8,21 @@ An easy way to build resilient chains of interdependent asynchronous tasks.
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-Composer helps you to organize and execute multiple interdependent input/output 
-tasks such as webservice calls, database read/writes 
-and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
+Composer helps you to organize and execute multiple interdependent input/output tasks such as webservice calls, database
+read/writes and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
 It is compatible with Java 8 & above on all JVM based platforms including Android.
 
-Most client-side mobile/web applications and backend services communicating with each other 
-require a framework in which interdependent asynchronous tasks can be glued together. 
-There are many libraries out there which allow doing this very effectively. 
-However, many of them are either not available for all platforms or require a steep learning curve. 
-Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, checking conditions or handling errors.
+Most client-side mobile/web applications and backend services communicating with each other require a framework in which
+interdependent asynchronous tasks can be glued together. There are many libraries out there which allow doing this very
+effectively. However, many of them are either not available for all platforms or require a steep learning curve.
+Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a
+minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to
+write boilerplate code for managing state, validating conditions or handling errors.
 
-Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
+Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an
+associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on
+app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each
+other.
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
@@ -107,71 +110,104 @@ Composable<String> myComposable = Composer.startWith(() -> "", err -> err.printS
 doSomething();
 doSomethingMore();
 
-String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
-        .thenRun(() -> logger.log("DONE"))
+        String csv=myComposable.thenConsume(csv->writer.writeCsvFile(csv))
+        .thenRun(()->logger.log("DONE"))
         .thenFinish();
 ```
 
-Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
+Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee
+that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously
+in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
 
 #### Executing Multiple Tasks Concurrently
-Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
-    
-For example, consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
+
+Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to
+specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
+
+- <b>Executing a collection of tasks:</b>
+
+Consider a slight modification in above scenario where converted csv is persisted in the database along with a
+file.<br/>
 
 In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
 
 ```java
-Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
-        .thenTransform(response -> converter.convertToCsv(response.data))
-        .thenConsumeTogether(() -> {
-            Set<ConsumingTask> tasks = new LinkedHashSet<>();
-            tasks.add(csv -> writer.writeCsvFile(csv));
-            tasks.add(csv -> db.storeCsv(csv));
+Composer.startWith(()->service.fetchData(),err->err.printStackTrace())
+        .thenTransform(response->converter.convertToCsv(response.data))
+        .thenConsumeTogether(()->{
+        Set<ConsumingTask> tasks=new LinkedHashSet<>();
+        tasks.add(csv->writer.writeCsvFile(csv));
+        tasks.add(csv->db.storeCsv(csv));
             return tasks;  //both will be executed concurrently
         })
-        .thenRun(() -> logger.log("DONE"))
         .thenFinish();
 ```
 
-In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
-    
-Such tasks will require a `Collector` to be passed as last param to collect outputs produced. A `Collector` collects results from multiple output producing tasks and returns something which can hold those results.<br/>
+- <b>Executing tasks producing output:</b>
 
-For example, consider a slight modification in the first scenario where data is to be converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods and collect results like below:
+In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/>
+
+Such tasks will require a `Collector` to be passed as last param to collect outputs produced. A `Collector` collects
+results from multiple output producing tasks and returns something which can hold those results.<br/>
+
+Consider a modification in the first scenario where data is to be converted into multiple formats such as csv, xml and
+yaml. In that case, we can use concurrent variants of above methods and collect results like below:
 
 ```java
 Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         .thenTransformTogether(
                 response -> converter.convertToCsv(response.data),
                 response -> converter.convertToXml(response.data),
-                response -> converter.convertToYaml(response.data),
-                (csv, xml, yaml) -> new ConvertedData(csv, xml, yaml) //ConvertedData is a pojo returned from collector to hold outputs from concurrently executing tasks
+        response->converter.convertToYaml(response.data),
+        (response,csv,xml,yaml)->new ConvertedData(csv,xml,yaml) //ConvertedData is a pojo returned from collector to hold outputs from concurrently executing tasks
         )
-        .thenConsumeTogether(() -> {
-            Set<ConsumingTask> tasks = new LinkedHashSet<>();
-            tasks.add(convertedData -> writer.writeCsvFile(convertedData.csv));
-            tasks.add(convertedData -> writer.writeXmlFile(convertedData.xml));
-            tasks.add(convertedData -> writer.writeYamlFile(convertedData.yaml));
-            return tasks;
+        .thenConsumeTogether(()->{
+        Set<ConsumingTask> tasks=new LinkedHashSet<>();
+        tasks.add(convertedData->writer.writeCsvFile(convertedData.csv));
+        tasks.add(convertedData->writer.writeXmlFile(convertedData.xml));
+        tasks.add(convertedData->writer.writeYamlFile(convertedData.yaml));
+        return tasks;
         })
-        .thenRun(() -> logger.log("DONE"))
+        .thenFinish();
+```
+
+- <b> Iterating over upstream results:</b>
+
+In the cases where an upstream output contains a collection and you want to execute a task concurently for each value in
+that collection, use `then...ForEachTogether()` variants.<br/>
+
+For example, consider a scenario where you need to fetch some posts from a service and then fetch comments for each post
+in that response. In that case, you will need to expand the upstream response to a collection of posts, provide the task
+to be executed concurrently for each post and finally collect the comments grouped by posts like below:
+
+```java
+Composer.startWith(()->service.fetchPosts(),err->err.printStackTrace())
+        .thenTransformForEachTogether(
+        response->response.getPosts(), //provide a collection to iterate here
+        post->service.fetchComments(post), //this task will be applied for each post in the list
+        (response,postAndComments)->new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a perticular post
+        )
+        .thenConsume(data->db.insertPostsAndComments(data))
         .thenFinish();
 ```
 
 #### Validating Task Output
-A task output must be `non-null`. Any task in a chain that receives `null` as an input will discontinue further execution.
-    
-Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and downstream consuming tasks will receive `null` as a result.
-    
-For example, in the first scenario, consider that you want to check the status and size of the data in response before converting to csv:
+
+A task output must be `non-null`. Any task in a chain that receives `null` as an input will discontinue further
+execution.
+
+Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition
+specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be
+discontinued and downstream consuming tasks will receive `null` as a result.
+
+For example, in the first scenario, consider that you want to check the status and size of the data in response before
+converting to csv:
 
 ```java
-Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
+Composer.startWith(()->service.fetchData(),err->err.printStackTrace())
         .thenContinueIf(response -> response.status.isOk() && !response.data.isEmpty()) //this will discontinue further execution if the specified condition returns false.
         .thenTransform(data -> converter.convertToCsv(data))
         .thenConsume(csv -> writer.writeCsvFile(csv))
-        .thenRun(() -> logger.log("DONE"))
         .thenFinish();
 ```    
      
@@ -189,9 +225,8 @@ To consume output from the last producing task, pass a `Consumer` to `thenFinish
 
 ```java
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
-        .thenTranform(data -> convertToSomething(data))
-        .thenContinueIf(convertedData -> convertedData.isValid())
-        .thenFinish(convertedData -> consumeFinalResult(convertedData));
+        .thenTranform(data->convertToSomething(data))
+        .thenFinish(convertedData->writeFinalResult(convertedData));
 ```
 This makes it easier to relay chain result between components or use `observer` pattern if required.
 
