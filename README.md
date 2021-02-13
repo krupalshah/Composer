@@ -41,7 +41,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - Gradle:
 ```groovy
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.0-M3'
+    implementation 'com.krupalshah:composer:1.0.0-M4'
 }
 ```
 
@@ -50,14 +50,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.0-M3</version>
+  <version>1.0.0-M4</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.0-M3'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.0-M4'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
