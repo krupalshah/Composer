@@ -73,8 +73,14 @@ Use `startWith()` to create your first `Composable` like below:
 ```java
 Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 ```
-The first param requires something as an input, or a task which produces the same.<br/>
+The first param is only required if you want to pass some pre-known value as an input, or a task which may produce the same.<br/>
 The second param `ErrorStream` receives any error during execution.<br/>
+
+If you don't have any pre-known input or task, you can simply create your first `Composable` by just providing an `ErrorStream` like below:
+
+```java
+Composer.startWith(err -> err.printStackTrace())
+```
 
 Use `thenFinish()` to discontinue further chaining and complete the awaiting task execution. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
@@ -101,7 +107,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
 Each step returns `Composable`, which can be detached and glued wherever required:
 
 ```java
-Composable<String> myComposable = Composer.startWith(() -> "", err -> err.printStackTrace())
+Composable<String> myComposable = Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         .thenTransform(response -> converter.convertToCsv(response.data));
 
 doSomething();
@@ -114,10 +120,10 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
 
 Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
 
-#### Executing Multiple Tasks Concurrently
+##### Executing Multiple Tasks Concurrently
 Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
 
-- <b>Executing a collection of tasks:</b>
+- ##### Executing a collection of tasks
  
 Consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
 
@@ -134,7 +140,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         })
         .thenFinish();
 ```
-- <b>Executing tasks producing output:</b>
+- ##### Executing tasks producing values
 
 In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
     
@@ -159,11 +165,11 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         })
         .thenFinish();
 ```
-- <b> Iterating over upstream results:</b>
+- ##### Iterating over upstream results
 
 In the cases where an upstream output contains a collection and you want to execute a task concurently for each value in that collection, use `then...ForEachTogether()` variants.<br/>
 
-Consider a scenario where you need to fetch some posts from a service and then fetch comments for each post in that response. In that case, you will need to expand the upstream response to a collection of posts, provide the task to be executed concurrently for each post and finally collect the comments grouped by posts like below:
+Consider a scenario where you need to fetch some posts from a service and then fetch comments for each post in the response. In that case, you will need to expand the upstream response to a collection of posts, provide the task to be executed concurrently for each post and finally collect the comments grouped by posts like below:
 
 ```java
 Composer.startWith(() -> service.fetchPosts(), err -> err.printStackTrace())
@@ -191,7 +197,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         .thenFinish();
 ```    
      
-#### Executing Synchronous Task
+#### Executing Task Synchronously
 By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `then...Synchronously()` can be used like below:
 
 ```java
@@ -199,16 +205,6 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
         .thenConsumeSynchronously(data -> showOnUI(data))
         .thenFinish();
 ```
-
-#### Consuming Final Result
-To consume output from the last producing task, pass a `Consumer` to `thenFinish()` like below:
-
-```java
-Composer.startWith(() -> produceSomething(), err -> err.printStackTrace())
-        .thenTranform(data -> convertToSomething(data))
-        .thenFinish(convertedData -> writeFinalResult(convertedData));
-```
-This makes it easier to relay chain result between components or use `observer` pattern if required.
 
 #### Providing Custom ExecutorService
 Finally, Composer uses an `ExecutorService` that creates a cached thread pool internally. If you want to provide your custom executor service, pass it as a third param of `startWith()` like below (not recommended unless required):
