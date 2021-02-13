@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.krupalshah'
-version = '1.0.0-M3' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+version = '1.0.0-M4' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
 
 apply plugin: 'java-library'
 
@@ -82,8 +82,8 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = 'git@github.com:krupalshah/Composer.git'
         version {
-            name = '1.0.0-M3'
-            desc = '1.0.0-M3'
+            name = '1.0.0-M4'
+            desc = '1.0.0-M4'
             released  = new Date()
         }
     }
