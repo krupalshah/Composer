@@ -19,7 +19,7 @@ There are many libraries out there which allow doing this very effectively.
 However, many of them are either not available for all platforms or require a steep learning curve. 
 Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
 
-Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
+Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
@@ -118,7 +118,7 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
         .thenFinish();
 ```
 
-Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Synchronous Task](#executing-synchronous-task) section.
+Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Task Synchronously](#executing-task-synchronously) section.
 
 #### Executing Multiple Tasks Concurrently
 Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
@@ -140,7 +140,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
         })
         .thenFinish();
 ```
-- ##### Executing tasks producing values
+- ##### Collecting output from multiple tasks
 
 In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
     
@@ -167,7 +167,7 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
 ```
 - ##### Iterating over upstream results
 
-In the cases where an upstream output contains a collection and you want to execute a task concurently for each value in that collection, use `then...ForEachTogether()` variants.<br/>
+In the cases where an upstream output contains a collection, and you want to execute a task concurrently for each value in that collection, use `then...ForEachTogether()` variants.<br/>
 
 Consider a scenario where you need to fetch some posts from a service and then fetch comments for each post in the response. In that case, you will need to expand the upstream response to a collection of posts, provide the task to be executed concurrently for each post and finally collect the comments grouped by posts like below:
 
@@ -176,7 +176,7 @@ Composer.startWith(() -> service.fetchPosts(), err -> err.printStackTrace())
         .thenTransformForEachTogether(
                 response -> response.getPosts(), //provide a collection to iterate here
                 post -> service.fetchComments(post), //this task will be applied for each post in the list
-                (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a perticular post
+                (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a specific post
         )
         .thenConsume(data -> db.insertPostsAndComments(data))
         .thenFinish();
