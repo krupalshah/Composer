@@ -5,9 +5,8 @@ import com.krupalshah.composer.exception.ComposerException;
 import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
-import com.krupalshah.composer.function.collector.Expander;
+import com.krupalshah.composer.function.collector.Distributor;
 import com.krupalshah.composer.function.collector.TriCollector;
-import com.krupalshah.composer.function.other.Consumer;
 import com.krupalshah.composer.function.other.Supplier;
 import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
@@ -71,12 +70,12 @@ public interface Composable<T> {
     /**
      * <p>Expands the upstream value to a collection, executes an asynchronous consumer task for each value in that collection concurrently and waits for all to complete</p>
      *
-     * @param expander function which takes upstream result as an input and returns a collection from it
+     * @param distributor function which takes upstream result as an input and returns a collection from it
      * @param task     task to be run for each value in the collection returned from expander
      * @param <S>      type of value to be consumed by task
      * @return chained composable
      */
-    <S> Composable<T> thenConsumeForEachTogether(Expander<T, Collection<S>> expander, ConsumingTask<S> task);
+    <S> Composable<T> thenConsumeForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
 
     /**
      * <p>Synchronously executes a consumer task</p>
@@ -202,7 +201,7 @@ public interface Composable<T> {
     /**
      * <p>Expands the upstream value to a collection, executes an asynchronous transformer task for each value in that collection concurrently and waits for all to complete</p>
      *
-     * @param expander         function which takes upstream result as an input and returns a collection from it
+     * @param distributor         function which takes upstream result as an input and returns a collection from it
      * @param task             task to be run for each value in the collection returned from expander
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of value to be transformed by task
@@ -210,7 +209,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenTransformForEachTogether(Expander<T, Collection<S>> expander, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
+    <S, U, R> Composable<R> thenTransformForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a transformer task</p>
@@ -240,5 +239,5 @@ public interface Composable<T> {
      *
      * @param upstreamResultConsumer consumer receiving an output of the last producing task in the discontinued chain
      */
-    void thenFinish(Consumer<T> upstreamResultConsumer);
+    void thenFinish(ConsumingTask<T> upstreamResultConsumer);
 }

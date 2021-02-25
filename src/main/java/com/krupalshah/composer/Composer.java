@@ -4,9 +4,8 @@ import com.krupalshah.composer.exception.ComposerException;
 import com.krupalshah.composer.exception.ErrorStream;
 import com.krupalshah.composer.function.collector.BiCollector;
 import com.krupalshah.composer.function.collector.Collector;
-import com.krupalshah.composer.function.collector.Expander;
+import com.krupalshah.composer.function.collector.Distributor;
 import com.krupalshah.composer.function.collector.TriCollector;
-import com.krupalshah.composer.function.other.Consumer;
 import com.krupalshah.composer.function.other.Supplier;
 import com.krupalshah.composer.function.other.Validator;
 import com.krupalshah.composer.function.tasks.ConsumingTask;
@@ -251,12 +250,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S> Composable<T> thenConsumeForEachTogether(Expander<T, Collection<S>> expander, ConsumingTask<S> task) {
+    public <S> Composable<T> thenConsumeForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Collection<S> collection = expander.expand(upstream);
+            Collection<S> collection = distributor.distribute(upstream);
             if (collection == null) return switchTo(null);
 
             Future<T> resultFuture = deferred(() -> uncheckedTask(() -> {
@@ -448,12 +447,12 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenTransformForEachTogether(Expander<T, Collection<S>> expander, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
+    public <S, U, R> Composable<R> thenTransformForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
 
-            Collection<S> collection = expander.expand(upstream);
+            Collection<S> collection = distributor.distribute(upstream);
             if (collection == null) return switchTo(null);
 
             Future<R> resultFuture = deferred(() -> {
@@ -513,12 +512,11 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public void thenFinish(Consumer<T> upstreamResultConsumer) {
+    public void thenFinish(ConsumingTask<T> upstreamResultConsumer) {
         try {
-            upstreamResultConsumer.accept(await());
+            upstreamResultConsumer.consume(await());
         } catch (Throwable t) {
             errStream.onError(t);
-            upstreamResultConsumer.accept(null);
         }
     }
     //endregion
