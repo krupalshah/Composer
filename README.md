@@ -40,6 +40,9 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 ### Adding Dependency
 - Gradle:
 ```groovy
+repositories {
+    jcenter()
+}
 dependencies {
     implementation 'com.krupalshah:composer:1.0.0'
 }
