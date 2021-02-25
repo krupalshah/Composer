@@ -43,6 +43,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 repositories {
     jcenter()
 }
+
 dependencies {
     implementation 'com.krupalshah:composer:1.0.0'
 }
