@@ -120,7 +120,7 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
 
 Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Task Synchronously](#executing-task-synchronously) section.
 
-#### Executing Multiple Tasks Concurrently
+#### Executing Tasks Concurrently
 Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
 
 - ##### Executing a collection of tasks
