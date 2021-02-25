@@ -71,8 +71,8 @@ public interface Composable<T> {
      * <p>Expands the upstream value to a collection, executes an asynchronous consumer task for each value in that collection concurrently and waits for all to complete</p>
      *
      * @param distributor function which takes upstream result as an input and returns a collection from it
-     * @param task     task to be run for each value in the collection returned from expander
-     * @param <S>      type of value to be consumed by task
+     * @param task        task to be run for each value in the collection returned from expander
+     * @param <S>         type of value to be consumed by task
      * @return chained composable
      */
     <S> Composable<T> thenConsumeForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
@@ -201,7 +201,7 @@ public interface Composable<T> {
     /**
      * <p>Expands the upstream value to a collection, executes an asynchronous transformer task for each value in that collection concurrently and waits for all to complete</p>
      *
-     * @param distributor         function which takes upstream result as an input and returns a collection from it
+     * @param distributor      function which takes upstream result as an input and returns a collection from it
      * @param task             task to be run for each value in the collection returned from expander
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
      * @param <S>              type of value to be transformed by task
