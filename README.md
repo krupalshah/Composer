@@ -213,9 +213,6 @@ Finally, Composer uses an `ExecutorService` that creates a cached thread pool in
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), customExecutorService)
 ```
 
-### Sample
-TBD. Contributions are welcome!
-
 ### Licence
 ```
 Copyright 2020 Krupal Shah
