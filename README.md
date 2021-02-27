@@ -38,7 +38,7 @@ Composer.startWith(currentUser.getUserId(), err -> logger.log(err))
 For detailed usage information, please refer [Getting Started](#getting-started) section.
     
 ### Table of Contents
-- [Adding Dependency](#adding-dependency)
+- [Setup](#setup)
 - [Getting Started](#getting-started)
     - [Overview](#overview)
     - [Chaining tasks](#chaining-tasks)
@@ -52,7 +52,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 - [FAQs](#faqs)
 - [Licence](#licence)
 
-### Adding Dependency
+### Setup
 - Gradle:
 ```groovy
 repositories {
