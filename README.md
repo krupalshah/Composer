@@ -40,8 +40,12 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 ### Adding Dependency
 - Gradle:
 ```groovy
+repositories {
+    jcenter()
+}
+
 dependencies {
-    implementation 'com.krupalshah:composer:1.0.0-M4'
+    implementation 'com.krupalshah:composer:1.0.1'
 }
 ```
 
@@ -50,14 +54,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>1.0.0-M4</version>
+  <version>1.0.1</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='1.0.0-M4'>
+<dependency org='com.krupalshah' name='composer' rev='1.0.1'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -120,7 +124,7 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
 
 Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Task Synchronously](#executing-task-synchronously) section.
 
-#### Executing Multiple Tasks Concurrently
+#### Executing Tasks Concurrently
 Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
 
 - ##### Executing a collection of tasks
@@ -212,6 +216,34 @@ Finally, Composer uses an `ExecutorService` that creates a cached thread pool in
 ```java
 Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), customExecutorService)
 ```
+
+### FAQs
+#### Q: What are the key differences over already established alternatives like `RxJava`?
+
+A: The key differences with `Composer` and other established frameworks have been well stated above: 
+> There are many libraries out there which allow doing this very effectively.
+However, many of them are either not available for all platforms or require a steep learning curve.
+Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
+
+Having said that, the frameworks such as `RxJava` are obviously far more advanced alternatives to what `Composer` is. However, the fact that `RxJava` does require a steep learning curve and more importantly, you have to think with a different paradigm (Reactive Programming), there is a value in re-inventing the wheel. 
+
+Also, not-so-nice thing about `RxJava` is the number of operators you have to understand in order to organize your asynchronous tasks. It may sound too opinionated but if the structure and organization of your asynchronous calls is pretty straightforward, then it would be nice to have much simpler alternatives to `RxJava`.
+
+To summarize, the use cases for `Composer` depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
+
+#### Q: On which thread will I receive all the errors? Is there a way to control it?
+A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from a main thread, you will receive all the errors on a main thread.
+
+However, please note than you can always detach and glue `Composable` as required. So, if you chain some of your asynchronous tasks and then move further chaining on another thread, errors will also be received on the that thread from the point you detached the chain.
+
+Regarding the control over thread for receiving errors, `ErrorStream` takes a function as an argument and so you can always enforce the threading behaviour in its implementation.
+
+#### Q: On which thread the synchronous tasks will be executed?
+A: The synchronous tasks will be run on the thread the method is being called upon. 
+
+For ex. If you are calling `then...Synchronously` from a main thread, then the task you provide in it will be run on a main thread. If you are calling the method from a background thread, the task will also run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
+
+
 
 ### Licence
 ```
