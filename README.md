@@ -239,9 +239,9 @@ Composer does not aim to provide an extensible API for managing asynchronous tas
 
 Having said that, the frameworks such as RxJava are far more advanced alternatives to what Composer is. The Composer is all about how you structure the dependencies between your asynchronous tasks, while the alternatives such as RxJava are much more than just that. 
 
-So, it makes sense to have a much simpler alternative when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
+It makes sense to have a much simpler alternative when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
 
-To summarize, comparing the Composer with RxJava is the same as comparing a cat with a leopard! The use cases for Composer depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
+To summarize, comparing the Composer with RxJava is the same as comparing a tiny cat with a leopard! The use cases for Composer depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
 
 #### Q: On which thread will I receive all the errors? Is there a way to control it?
 A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from the main thread, you will receive all the errors on the main thread.
