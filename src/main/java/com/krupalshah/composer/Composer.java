@@ -146,7 +146,7 @@ public class Composer<T> implements Composable<T> {
                 try {
                     task.execute();
                 } catch (Exception e) {
-                    errStream.onError(e);
+                    throw new ComposerException(e);
                 }
             });
             return newComposer(future, errStream, taskExecutor);
