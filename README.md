@@ -234,7 +234,7 @@ To summarize, comparing the `Composer` with `RxJava` is the same as comparing a 
 #### Q: On which thread will I receive all the errors? Is there a way to control it?
 A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from the main thread, you will receive all the errors on the main thread.
 
-However, please note than you can always detach and glue `Composable` as required. So, if you chain some of your asynchronous tasks and then move further chaining on another thread, errors will also be received on that thread from the point you detached from the first chain.
+However, please note than you can always detach and glue `Composable` as required. So, if you chain some of your asynchronous tasks and then move further chaining on another thread, errors will also be received on that thread from the point you detach from the first part of your chain.
 
 Regarding the control over thread for receiving errors, `ErrorStream` takes a function as an argument and so you can always enforce the threading behaviour in its implementation.
 
