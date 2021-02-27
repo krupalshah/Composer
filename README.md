@@ -77,7 +77,7 @@ Use `startWith()` to create your first `Composable` like below:
 ```java
 Composer.startWith(someInputOrTask, err -> err.printStackTrace())
 ```
-The first param is only required if you want to pass some pre-known value as an input, or a task which may produce the same.<br/>
+The first param is only required if you want to pass some pre-known value as an input, or a task that may produce the same.<br/>
 The second param `ErrorStream` receives any error during execution.<br/>
 
 If you don't have any pre-known input or task, you can simply create your first `Composable` by just providing an `ErrorStream` like below:
@@ -96,7 +96,7 @@ A `Task` can be anything to be run. It may take something as an input and/or ret
 - Use `thenProduce...` methods for the task which takes no input but returns an output. 
 - Use `thenTransform...` methods for the task which takes an input and converts it into output.
 
-For example, consider a very straightforward scenario in which some independent data is to be fetched from remote datasource via webservice, converted into csv format, written to a file, and a message is to be printed to the console when all of this is done.<br/>
+For example, consider a very straightforward scenario in which some independent data is to be fetched from remote data source via webservice, converted into csv format, written to a file, and a message is to be printed to the console when all of this is done.<br/>
 
 Given this information, a chain can be as written as below:
 
@@ -122,14 +122,14 @@ String csv = myComposable.thenConsume(csv -> writer.writeCsvFile(csv))
         .thenFinish();
 ```
 
-Please note that chained tasks are executed asynchronously by default. Hence, in above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Task Synchronously](#executing-task-synchronously) section.
+Please note that chained tasks are executed asynchronously by default. Hence, in the above example there is no guarantee that `doSomething()` will be run after the data is converted to csv. If something needs to be executed synchronously in-between, chain it as specified under [Executing Task Synchronously](#executing-task-synchronously) section.
 
 #### Executing Tasks Concurrently
-Different variants of above methods have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
+Different method variants have been provided to execute multiple tasks concurrently. All you have to do is to specify a collection of tasks to be executed in parallel. The order of execution is never guaranteed.<br/>
 
 - ##### Executing a collection of tasks
  
-Consider a slight modification in above scenario where converted csv is persisted in the database along with a file.<br/> 
+Consider a slight modification in the previous scenario where converted csv is persisted in the database along with a file.<br/> 
 
 In that case, both tasks can be executed concurrently using `then...Together()` variants like below:
 
@@ -146,11 +146,11 @@ Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
 ```
 - ##### Collecting output from multiple tasks
 
-In the cases where a task produces an output, concurrent variants can execute any number of tasks with same type of output, or maximum three tasks with different types of output.<br/> 
+In the cases where a task produces an output, concurrent variants can execute any number of tasks with the same type of output, or maximum three tasks with different types of output.<br/> 
     
-Such tasks will require a `Collector` to be passed as last param to collect outputs produced. A `Collector` collects results from multiple output producing tasks and returns something which can hold those results.<br/>
+Such tasks will require a `Collector` as an additional parameter. A `Collector` collects results from multiple producer tasks and returns something which can hold those results.<br/>
 
-Consider a modification in the first scenario where data is to be converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent variants of above methods and collect results like below:
+Consider a modification in the first scenario where data is to be converted into multiple formats such as csv, xml and yaml. In that case, we can use concurrent method variants and collect results like below:
 
 ```java
 Composer.startWith(() -> service.fetchData(), err -> err.printStackTrace())
@@ -189,7 +189,7 @@ Composer.startWith(() -> service.fetchPosts(), err -> err.printStackTrace())
 #### Validating Task Output
 A task output must be `non-null`. Any task in a chain that receives `null` as an input will discontinue further execution.
     
-Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and downstream consuming tasks will receive `null` as a result.
+Use `thenContinueIf()` to validate the task output before it is used as an input of dependent tasks. If the condition specified returns false, you will receive a `ComposerException` on the `ErrorStream` provided. Further execution will be discontinued and downstream consuming tasks will receive `null` as a result.
     
 For example, in the first scenario, consider that you want to check the status and size of the data in response before converting to csv:
 
@@ -220,28 +220,28 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), custo
 ### FAQs
 #### Q: What are the key differences with already established alternatives such as `RxJava`?
 
-A: The key differences with `Composer` and other established frameworks have been well stated above: 
+A: The key difference between `Composer` and other established frameworks has been well stated above: 
 > There are many libraries out there which allow doing this very effectively.
 However, many of them are either not available for all platforms or require a steep learning curve.
 Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
 
-Having said that, the frameworks such as `RxJava` are obviously far more advanced alternatives to what `Composer` is. However, the fact that `RxJava` does require a steep learning curve and more importantly, you have to think with a different paradigm (Reactive Programming), it is worth re-inventing the wheel. 
+Having said that, the frameworks such as `RxJava` are far more advanced alternatives to what `Composer` is. However, the fact that `RxJava` does require a steep learning curve and more importantly, you have to think with a different paradigm (Reactive Programming), it is worth re-inventing the wheel. 
 
-Also, not-so-nice thing about `RxJava` is the number of operators you have to understand in order to organize your asynchronous tasks. It may sound too opinionated but if the structure and organization of your asynchronous calls is pretty straightforward, then it would be nice to have much simpler alternatives to `RxJava`.
+Also, the not-so-nice thing about `RxJava` is the number of operators you have to understand in order to organize your asynchronous tasks. It may sound too opinionated but if the structure of your asynchronous calls is pretty straightforward, then it would be nice to have much simpler alternatives to `RxJava`.
 
-To summarize, comparing the `Composer` with `RxJava` is same as comparing a cat with a leopard! The use cases for `Composer` depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
+To summarize, comparing the `Composer` with `RxJava` is the same as comparing a cat with a leopard! The use cases for `Composer` depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
 
 #### Q: On which thread will I receive all the errors? Is there a way to control it?
-A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from a main thread, you will receive all the errors on a main thread.
+A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from the main thread, you will receive all the errors on the main thread.
 
-However, please note than you can always detach and glue `Composable` as required. So, if you chain some of your asynchronous tasks and then move further chaining on another thread, errors will also be received on the that thread from the point you detached the chain.
+However, please note than you can always detach and glue `Composable` as required. So, if you chain some of your asynchronous tasks and then move further chaining on another thread, errors will also be received on that thread from the point you detached from the first chain.
 
 Regarding the control over thread for receiving errors, `ErrorStream` takes a function as an argument and so you can always enforce the threading behaviour in its implementation.
 
 #### Q: On which thread the synchronous tasks will be executed?
 A: The synchronous tasks will be run on the thread the method is being called upon. 
 
-For ex. If you are calling `then...Synchronously` from a main thread, then the task provided with it will be run on a main thread. If you are calling the method from a background thread, the task will also be run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
+For ex. If you are calling `then...Synchronously` from the main thread, then the task provided with it will be run on the main thread. If you are calling the method from a background thread, the task will also be run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
 
 
 
