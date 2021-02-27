@@ -241,7 +241,7 @@ Regarding the control over thread for receiving errors, `ErrorStream` takes a fu
 #### Q: On which thread the synchronous tasks will be executed?
 A: The synchronous tasks will be run on the thread the method is being called upon. 
 
-For ex. If you are calling `then...Synchronously` from a main thread, then the task you provide in it will be run on a main thread. If you are calling the method from a background thread, the task will also run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
+For ex. If you are calling `then...Synchronously` from a main thread, then the task provided with it will be run on a main thread. If you are calling the method from a background thread, the task will also be run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
 
 
 
