@@ -218,7 +218,7 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), custo
 ```
 
 ### FAQs
-####Q: What are the key differences over already established alternatives like `RxJava`?
+#### Q: What are the key differences over already established alternatives like `RxJava`?
 
 A: The key differences with `Composer` and other established frameworks have been well stated above: 
 > There are many libraries out there which allow doing this very effectively.
