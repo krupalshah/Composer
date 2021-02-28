@@ -251,7 +251,7 @@ However, please note than you can always detach and glue `Composable` as require
 Regarding the control over thread for receiving errors, `ErrorStream` takes a function as an argument and so you can always enforce the threading behaviour in its implementation.
 
 #### Q: Will the synchronous tasks always be executed on main/UI thread?
-A: The synchronous tasks will be executed on the thread the method is being called upon. 
+A: No. The synchronous tasks will be executed on the thread the method is being called upon. 
 
 For example, If you are calling `then...Synchronously` from the main thread, then the task provided with it will be run on the main thread. If you are calling the method from a background thread, the task will also be run on a background thread. However, the key difference with other method variants is that `then...Synchronously` variants will always wait for the task to complete and not dispatch the control to downstream until the task is finished.
 
