@@ -239,7 +239,7 @@ Composer does not aim to provide an extensible API for managing asynchronous tas
 
 Having said that, the frameworks such as RxJava are far more advanced alternatives to what Composer is. The Composer is all about how you structure the dependencies between your asynchronous tasks, while the alternatives such as RxJava are much more than just that. 
 
-It makes sense to have a much simpler alternative when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
+Therefore, it makes sense to use a much simpler framework when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
 
 To summarize, comparing the Composer with RxJava is the same as comparing a tiny cat with a leopard! The use cases for Composer depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
 
