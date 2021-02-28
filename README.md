@@ -8,7 +8,7 @@ Asynchrony made simple
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
-Composer helps you to organize and execute multiple interdependent input/output 
+Composer helps you to organize and execute multiple interdependent asynchronous input/output 
 tasks such as webservice calls, database read/writes 
 and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
 It is compatible with Java 8 & above on all JVM based platforms including Android.
