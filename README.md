@@ -1,5 +1,5 @@
-# Composer 
-An easy way to build resilient chains of interdependent asynchronous tasks.
+# Composer
+Asynchrony made simple🎉
 
 [![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
 [![Download](https://api.bintray.com/packages/krupalshah55/Composer/Composer/images/download.svg) ](https://bintray.com/krupalshah55/Composer/Composer/_latestVersion)
