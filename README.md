@@ -241,7 +241,7 @@ Having said that, the frameworks such as RxJava are far more advanced alternativ
 
 Therefore, it makes sense to use a much simpler framework when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
 
-To summarize, comparing the Composer with RxJava is the same as comparing a tiny cat with a leopard! The use cases for Composer depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
+To summarize, comparing the Composer with RxJava is the same as comparing a tiny cat with a wild leopard! The use cases for Composer depend upon the complexity of what you want to achieve and how much simplicity you can afford over extensibility.
 
 #### Q: On which thread will I receive all the errors? Is there a way to control it?
 A: The `ErrorStream` always transmits an error synchronously on the thread it is being called upon. So, if you call `Composer.startWith()` and all subsequent chaining methods only from the main thread, you will receive all the errors on the main thread.
