@@ -47,7 +47,6 @@ For detailed usage information, please refer [Getting Started](#getting-started)
     - [Executing task synchronously](#executing-task-synchronously)
     - [Providing custom executor service](#providing-custom-executor-service)
 - [FAQs](#faqs)
-- [Licence](#licence)
 
 ### Setup
 - Gradle:
