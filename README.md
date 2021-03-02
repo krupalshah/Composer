@@ -14,10 +14,8 @@ and file i/o together with concurrency support using `java.util.concurrent` APIs
 It is compatible with Java 8 & above on all JVM based platforms including Android.
 
 Most client-side mobile/web applications and backend services communicating with each other 
-require a framework in which interdependent asynchronous tasks can be glued together. 
-There are many libraries out there which allow doing this very effectively. 
-However, many of them are either not available for all platforms or require a steep learning curve. 
-Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
+require an extensible framework in which interdependent asynchronous tasks can be glued together.  
+<b>Composer does not aim to provide an extensible API for managing asynchronous tasks.</b> Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
 
 Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous and dependent on each other.
 
@@ -231,12 +229,7 @@ Composer.startWith(() -> produceSomething(), err -> err.printStackTrace(), custo
 ### FAQs
 #### Q: What are the key differences with already established alternatives such as RxJava?
 
-A: The key difference between Composer and other established frameworks has been well stated above: 
-> There are many libraries out there which allow doing this very effectively.
-However, many of them are either not available for all platforms or require a steep learning curve.
-Composer does not aim to provide an extensible API for managing asynchronous tasks. Instead, it aims to provide a minimal, easy to use API which can be useful for the scenarios where interdependency between such tasks forces you to write boilerplate code for managing state, validating conditions or handling errors.
-
-Having said that, the frameworks such as RxJava are far more advanced alternatives to what Composer is. The Composer is all about how you structure the dependencies between your asynchronous tasks, while the alternatives such as RxJava are much more than just that. 
+A: The frameworks such as RxJava are far far more advanced alternatives to what Composer is. The Composer is all about how you structure the dependencies between your asynchronous tasks, while the alternatives such as RxJava are much more than just that. 
 
 Therefore, it makes sense to use a much simpler framework when the only thing you want to achieve is the composability between those dependencies and also when the structure of your asynchronous calls is pretty straightforward.
 
