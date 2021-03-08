@@ -184,7 +184,7 @@ public class Composer<T> implements Composable<T> {
 
     //region public API
     @Override
-    public Composable<T> thenPlay(SimpleTask task) {
+    public Composable<T> thenExecute(SimpleTask task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -194,7 +194,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenPlayTogether(SimpleTask... tasks) {
+    public Composable<T> thenExecuteTogether(SimpleTask... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -220,7 +220,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public Composable<T> thenPlay(ConsumingTask<T> task) {
+    public Composable<T> thenExecute(ConsumingTask<T> task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -231,7 +231,7 @@ public class Composer<T> implements Composable<T> {
 
     @SafeVarargs
     @Override
-    public final Composable<T> thenPlayTogether(ConsumingTask<T>... tasks) {
+    public final Composable<T> thenExecuteTogether(ConsumingTask<T>... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -248,7 +248,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S> Composable<T> thenPlayForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task) {
+    public <S> Composable<T> thenExecuteForEach(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -278,7 +278,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <R> Composable<R> thenPlay(ProducingTask<R> task) {
+    public <R> Composable<R> thenExecute(ProducingTask<R> task) {
         return chainWith(() -> {
             await();
             Future<R> future = async(task::produce);
@@ -288,7 +288,7 @@ public class Composer<T> implements Composable<T> {
 
     @SafeVarargs
     @Override
-    public final <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks) {
+    public final <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -314,7 +314,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenPlayTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<T, S, U, R> resultsCollector) {
+    public <S, U, R> Composable<R> thenExecuteTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<T, S, U, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -334,7 +334,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenPlayTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<T, S, U, V, R> resultsCollector) {
+    public <S, U, V, R> Composable<R> thenExecuteTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<T, S, U, V, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -365,7 +365,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <R> Composable<R> thenPlay(TransformingTask<T, R> task) {
+    public <R> Composable<R> thenExecute(TransformingTask<T, R> task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -376,7 +376,7 @@ public class Composer<T> implements Composable<T> {
 
     @SafeVarargs
     @Override
-    public final <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks) {
+    public final <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -403,7 +403,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenPlayTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<T, S, U, R> resultsCollector) {
+    public <S, U, R> Composable<R> thenExecuteTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<T, S, U, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -423,7 +423,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, V, R> Composable<R> thenPlayTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector) {
+    public <S, U, V, R> Composable<R> thenExecuteTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -445,7 +445,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenPlayForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
+    public <S, U, R> Composable<R> thenExecuteForEach(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
