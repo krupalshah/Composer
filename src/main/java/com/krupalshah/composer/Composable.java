@@ -99,11 +99,11 @@ public interface Composable<T> {
      *
      * @param <S>              type of task output
      * @param <R>              type of collector output
-     * @param tasks
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
+     * @param tasks
      * @return chained composable
      */
-    <S, R> Composable<R> thenPlayTogether(ProducingTask<S>[] tasks, Collector<T, Set<S>, R> resultsCollector);
+    <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -160,11 +160,11 @@ public interface Composable<T> {
      *
      * @param <S>              type of task output
      * @param <R>              type of collector output
-     * @param tasks
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
+     * @param tasks
      * @return chained composable
      */
-    <S, R> Composable<R> thenPlayTogether(TransformingTask<T, S>[] tasks, Collector<T, Set<S>, R> resultsCollector);
+    <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
