@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.krupalshah:composer:2.0.0-RC1'
+    implementation 'com.krupalshah:composer:2.0.0'
 }
 ```
 
@@ -62,14 +62,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>2.0.0-RC1</version>
+  <version>2.0.0</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='2.0.0-RC1'>
+<dependency org='com.krupalshah' name='composer' rev='2.0.0'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
