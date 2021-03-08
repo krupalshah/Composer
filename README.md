@@ -225,7 +225,7 @@ Composer.startWith(() -> produceSomething(), err -> logger.error("Error executin
 ```
 
 ### Changelog
-- #### 2.0.0-RC1
+- #### 2.0.0
   - This release contains breaking changes. Major API refactorings include renaming all methods to reduce verbosity.
   - Collection parameters in `then..Together` variants have been replaced with varargs.
 - #### 1.0.1
