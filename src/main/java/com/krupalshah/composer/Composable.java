@@ -22,7 +22,6 @@ import java.util.Set;
  *
  * @param <T> type of upstream result
  */
-@SuppressWarnings("unchecked")
 public interface Composable<T> {
 
     /**
@@ -64,6 +63,7 @@ public interface Composable<T> {
      * @param tasks supplier of tasks which takes an input but returns no output
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     Composable<T> thenExecuteTogether(ConsumingTask<T>... tasks);
 
     /**
@@ -104,6 +104,7 @@ public interface Composable<T> {
      * @param tasks            task which takes no input but produces an output of type S
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks);
 
     /**
@@ -165,6 +166,7 @@ public interface Composable<T> {
      * @param tasks            task which takes an input and produce an output of type S
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks);
 
     /**

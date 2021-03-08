@@ -43,7 +43,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
     - [Validating task output](#validating-task-output)
     - [Executing task synchronously](#executing-task-synchronously)
     - [Providing custom executor service](#providing-custom-executor-service)
-- [Changelog](#changelog)
+- [Change Log](#change-log)
 
 ### Setup
 - Gradle:
@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.krupalshah:composer:2.0.0'
+    implementation 'com.krupalshah:composer:2.0.1'
 }
 ```
 
@@ -62,14 +62,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='2.0.0'>
+<dependency org='com.krupalshah' name='composer' rev='2.0.1'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -224,7 +224,9 @@ Finally, Composer uses an `ExecutorService` that creates a cached thread pool in
 Composer.startWith(() -> produceSomething(), err -> logger.error("Error executing tasks", err), customExecutorService)
 ```
 
-### Changelog
+### Change Log
+- #### 2.0.1
+  - Minor changes to avoid compiler warnings.
 - #### 2.0.0
   - This release contains breaking changes. Major API refactorings include renaming all methods to reduce verbosity.
   - Collection parameters in `then..Together` variants have been replaced with varargs.
