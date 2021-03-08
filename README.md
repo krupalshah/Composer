@@ -187,7 +187,7 @@ Composer.startWith(() -> service.fetchPosts(), err -> logger.error("Error execut
                 post -> service.fetchComments(post), //this task will be applied for each post in the list
                 (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a specific post
         )
-        .thenExecute(data -> {db.insertPostsAndComments(data); })
+        .thenExecute(data -> { db.insertPostsAndComments(data); })
         .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
