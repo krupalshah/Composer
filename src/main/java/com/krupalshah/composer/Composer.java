@@ -248,7 +248,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S> Composable<T> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task) {
+    public <S> Composable<T> thenExecuteForEach(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -445,7 +445,7 @@ public class Composer<T> implements Composable<T> {
     }
 
     @Override
-    public <S, U, R> Composable<R> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
+    public <S, U, R> Composable<R> thenExecuteForEach(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);

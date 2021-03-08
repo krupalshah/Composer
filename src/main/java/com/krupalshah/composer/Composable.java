@@ -74,7 +74,7 @@ public interface Composable<T> {
      * @param <S>         type of value to be consumed by task
      * @return chained composable
      */
-    <S> Composable<T> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
+    <S> Composable<T> thenExecuteForEach(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
 
     /**
      * <p>Synchronously executes a consumer task</p>
@@ -208,7 +208,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
+    <S, U, R> Composable<R> thenExecuteForEach(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a transformer task</p>

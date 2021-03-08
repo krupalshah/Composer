@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.krupalshah:composer:2.0.0'
+    implementation 'com.krupalshah:composer:2.0.0-RC1'
 }
 ```
 
@@ -62,14 +62,14 @@ dependencies {
 <dependency>
   <groupId>com.krupalshah</groupId>
   <artifactId>composer</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.0-RC1</version>
   <type>pom</type>
 </dependency>
 ```
 
 - Ivy:
 ```xml
-<dependency org='com.krupalshah' name='composer' rev='2.0.0'>
+<dependency org='com.krupalshah' name='composer' rev='2.0.0-RC1'>
   <artifact name='composer' ext='pom' />
 </dependency>
 ```
@@ -225,7 +225,7 @@ Composer.startWith(() -> produceSomething(), err -> logger.error("Error executin
 ```
 
 ### Changelog
-- #### 2.0.0
+- #### 2.0.0-RC1
   - This release contains breaking changes. Major API refactorings include renaming all methods to reduce verbosity.
   - Collection parameters in `then..Together` variants have been replaced with varargs.
 - #### 1.0.1
