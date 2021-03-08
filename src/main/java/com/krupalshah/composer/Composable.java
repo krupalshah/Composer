@@ -31,7 +31,7 @@ public interface Composable<T> {
      * @param task task which takes no input and returns no output
      * @return chained composable
      */
-    Composable<T> thenPlay(SimpleTask task);
+    Composable<T> thenExecute(SimpleTask task);
 
     /**
      * <p>Executes set of asynchronous runnable tasks concurrently and waits for all to complete.</p>
@@ -39,7 +39,7 @@ public interface Composable<T> {
      *
      * @param tasks @return chained composable
      */
-    Composable<T> thenPlayTogether(SimpleTask... tasks);
+    Composable<T> thenExecuteTogether(SimpleTask... tasks);
 
     /**
      * <p>Synchronously executes a runnable task</p>
@@ -55,7 +55,7 @@ public interface Composable<T> {
      * @param task task which takes an input but returns no output
      * @return chained composable
      */
-    Composable<T> thenPlay(ConsumingTask<T> task);
+    Composable<T> thenExecute(ConsumingTask<T> task);
 
     /**
      * <p>Executes set of asynchronous consumer tasks concurrently and waits for all to complete.</p>
@@ -64,7 +64,7 @@ public interface Composable<T> {
      * @param tasks supplier of tasks which takes an input but returns no output
      * @return chained composable
      */
-    Composable<T> thenPlayTogether(ConsumingTask<T>... tasks);
+    Composable<T> thenExecuteTogether(ConsumingTask<T>... tasks);
 
     /**
      * <p>Expands the upstream value to a collection, executes an asynchronous consumer task for each value in that collection concurrently and waits for all to complete</p>
@@ -74,7 +74,7 @@ public interface Composable<T> {
      * @param <S>         type of value to be consumed by task
      * @return chained composable
      */
-    <S> Composable<T> thenPlayForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
+    <S> Composable<T> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, ConsumingTask<S> task);
 
     /**
      * <p>Synchronously executes a consumer task</p>
@@ -91,7 +91,7 @@ public interface Composable<T> {
      * @param <R>  type of task output
      * @return chained composable
      */
-    <R> Composable<R> thenPlay(ProducingTask<R> task);
+    <R> Composable<R> thenExecute(ProducingTask<R> task);
 
     /**
      * <p>Executes collection of asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -104,7 +104,7 @@ public interface Composable<T> {
      * @param tasks            task which takes no input but produces an output of type S
      * @return chained composable
      */
-    <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks);
+    <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -118,7 +118,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenPlayTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<T, S, U, R> resultsCollector);
+    <S, U, R> Composable<R> thenExecuteTogether(ProducingTask<S> task1, ProducingTask<U> task2, BiCollector<T, S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous producer tasks concurrently and waits for all to complete.</p>
@@ -134,7 +134,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenPlayTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<T, S, U, V, R> resultsCollector);
+    <S, U, V, R> Composable<R> thenExecuteTogether(ProducingTask<S> task1, ProducingTask<U> task2, ProducingTask<V> task3, TriCollector<T, S, U, V, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a producer task</p>
@@ -152,7 +152,7 @@ public interface Composable<T> {
      * @param <R>  type of task output
      * @return chained composable
      */
-    <R> Composable<R> thenPlay(TransformingTask<T, R> task);
+    <R> Composable<R> thenExecute(TransformingTask<T, R> task);
 
     /**
      * <p>Executes collection of asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -165,7 +165,7 @@ public interface Composable<T> {
      * @param tasks            task which takes an input and produce an output of type S
      * @return chained composable
      */
-    <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks);
+    <S, R> Composable<R> thenExecuteTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -179,7 +179,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenPlayTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<T, S, U, R> resultsCollector);
+    <S, U, R> Composable<R> thenExecuteTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, BiCollector<T, S, U, R> resultsCollector);
 
     /**
      * <p>Executes asynchronous transformer tasks concurrently and waits for all to complete.</p>
@@ -195,7 +195,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, V, R> Composable<R> thenPlayTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector);
+    <S, U, V, R> Composable<R> thenExecuteTogether(TransformingTask<T, S> task1, TransformingTask<T, U> task2, TransformingTask<T, V> task3, TriCollector<T, S, U, V, R> resultsCollector);
 
     /**
      * <p>Expands the upstream value to a collection, executes an asynchronous transformer task for each value in that collection concurrently and waits for all to complete</p>
@@ -208,7 +208,7 @@ public interface Composable<T> {
      * @param <R>              type of collector output
      * @return chained composable
      */
-    <S, U, R> Composable<R> thenPlayForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
+    <S, U, R> Composable<R> thenExecuteForEachTogether(Distributor<T, Collection<S>> distributor, TransformingTask<S, U> task, Collector<T, Set<Pair<S, U>>, R> resultsCollector);
 
     /**
      * <p>Synchronously executes a transformer task</p>

@@ -17,16 +17,16 @@ Here is an example of how you can use Composer to create a chain of tasks. Consi
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.error("Error executing tasks", err))
-        .thenPlay(userId -> { return accountService.getTwitterAccountDetails(userId); })
+        .thenExecute(userId -> { return accountService.getTwitterAccountDetails(userId); })
         .thenContinueIf(response -> response.status.isOk())
-        .thenPlayTogether(
+        .thenExecuteTogether(
             response -> twitterService.getTweets(response.username), 
             response -> twitterService.getMedia(response.username), 
             response -> twitterService.getFollowers(response.username), 
             CollectedResults::new
         )
         .thenWaitFor(results -> { refreshUI(results); })
-        .thenPlay(() -> { analyticsDb.trackEvent("get_twitter_details"); })
+        .thenExecute(() -> { analyticsDb.trackEvent("get_twitter_details"); })
         .thenFinish();
 ``` 
 
@@ -109,9 +109,9 @@ Given this information, a chain can be as written as below:
 
 ```java
 Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executing tasks", err))
-        .thenPlay(response -> { return converter.convertToCsv(response.data); })
-        .thenPlay(csv -> { writer.writeCsvFile(csv); })
-        .thenPlay(() -> { mailer.sendEmail("All Tasks Completed"); })
+        .thenExecute(response -> { return converter.convertToCsv(response.data); })
+        .thenExecute(csv -> { writer.writeCsvFile(csv); })
+        .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
 
@@ -119,13 +119,13 @@ Each step returns `Composable`, which can be detached and glued wherever require
 
 ```java
 Composable<String> myComposable = Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executing tasks", err))
-        .thenPlay(response -> { return converter.convertToCsv(response.data); })
+        .thenExecute(response -> { return converter.convertToCsv(response.data); })
 
 doSomething();
 doSomethingMore();
 
-String csv = myComposable.thenPlay(csv -> { writer.writeCsvFile(csv); })
-        .thenPlay(() -> { mailer.sendEmail("All Tasks Completed"); })
+String csv = myComposable.thenExecute(csv -> { writer.writeCsvFile(csv); })
+        .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
 
@@ -138,16 +138,16 @@ Different method variants have been provided to execute multiple tasks concurren
  
 Consider a slight modification in the previous scenario where converted csv is persisted in the database along with a file.<br/> 
 
-In that case, both tasks can be executed concurrently using `thenPlayTogether()` variants like below:
+In that case, both tasks can be executed concurrently using `thenExecuteTogether()` variants like below:
 
 ```java
 Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executing tasks", err))
-        .thenPlay(response -> { return converter.convertToCsv(response.data); })
-        .thenPlayTogether( 
+        .thenExecute(response -> { return converter.convertToCsv(response.data); })
+        .thenExecuteTogether( 
             csv -> writer.writeCsvFile(csv),
             db.storeCsv(csv) //both tasks will be executed concurrently
         )
-        .thenPlay(() -> { mailer.sendEmail("All Tasks Completed"); })
+        .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
 - ##### Collecting output from multiple tasks
@@ -160,35 +160,35 @@ Consider a modification in the first scenario where data is to be converted into
 
 ```java
 Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executing tasks", err))
-        .thenPlayTogether(
+        .thenExecuteTogether(
                 (response, csv, xml, yaml) -> new ConvertedData(csv, xml, yaml), //ConvertedData is a pojo returned from collector to hold outputs from concurrently executing tasks
                 response -> converter.convertToCsv(response.data),
                 response -> converter.convertToXml(response.data),
                 response -> converter.convertToYaml(response.data)
         )
-        .thenPlayTogether(
+        .thenExecuteTogether(
             convertedData -> writer.writeCsvFile(convertedData.csv),
             convertedData -> writer.writeXmlFile(convertedData.xml),
             convertedData -> writer.writeYamlFile(convertedData.yaml)
         )
-        .thenPlay(() -> mailer.sendEmail("All Tasks Completed"))
+        .thenExecute(() -> mailer.sendEmail("All Tasks Completed"))
         .thenFinish();
 ```
 - ##### Iterating over upstream results
 
-In the cases where an upstream output contains a collection, and you want to execute a task concurrently for each value in that collection, use `thenPlayForEachTogether()` variants.<br/>
+In the cases where an upstream output contains a collection, and you want to execute a task concurrently for each value in that collection, use `thenExecuteForEachTogether()` variants.<br/>
 
 Consider a scenario where you need to fetch some posts from a service and then fetch comments for each post in the response. In that case, you will need to expand the upstream response to a collection of posts, provide the task to be executed concurrently for each post and finally collect the comments grouped by posts like below:
 
 ```java
 Composer.startWith(() -> service.fetchPosts(), err -> logger.error("Error executing tasks", err))
-        .thenPlayTogether(
+        .thenExecuteTogether(
                 response -> response.getPosts(), //provide a collection to iterate over
                 post -> service.fetchComments(post), //this task will be applied for each post in the list
                 (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a specific post
         )
-        .thenPlay(data -> {db.insertPostsAndComments(data); })
-        .thenPlay(() -> { mailer.sendEmail("All Tasks Completed"); })
+        .thenExecute(data -> {db.insertPostsAndComments(data); })
+        .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
 
@@ -202,9 +202,9 @@ For example, in the first scenario, consider that you want to check the status a
 ```java
 Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executing tasks", err))
         .thenContinueIf(response -> response.status.isOk() && !response.data.isEmpty()) //this will discontinue further execution if the specified condition returns false.
-        .thenPlay(response -> { return converter.convertToCsv(response.data); })
-        .thenPlay(csv -> { writer.writeCsvFile(csv); })
-        .thenPlay(() -> { mailer.sendEmail("All Tasks Completed"); })
+        .thenExecute(response -> { return converter.convertToCsv(response.data); })
+        .thenExecute(csv -> { writer.writeCsvFile(csv); })
+        .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```    
      
