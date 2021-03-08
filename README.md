@@ -43,7 +43,7 @@ For detailed usage information, please refer [Getting Started](#getting-started)
     - [Validating task output](#validating-task-output)
     - [Executing task synchronously](#executing-task-synchronously)
     - [Providing custom executor service](#providing-custom-executor-service)
-- [Changelog](#changelog)
+- [Change Log](#change-log)
 
 ### Setup
 - Gradle:
@@ -224,7 +224,7 @@ Finally, Composer uses an `ExecutorService` that creates a cached thread pool in
 Composer.startWith(() -> produceSomething(), err -> logger.error("Error executing tasks", err), customExecutorService)
 ```
 
-### Changelog
+### Change Log
 - #### 2.0.1
   - Minor changes to avoid compiler warnings.
 - #### 2.0.0
