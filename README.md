@@ -97,11 +97,11 @@ Composer.startWith(err -> logger.error("Error executing tasks", err))
 Use `thenFinish()` to discontinue further chaining and complete the awaiting task execution. Between `startWith` and `thenFinish`, chain your tasks according to their dependencies.<br/>
 
 #### Chaining tasks
-   
-- Use `SimpleTask` for the task which takes no input and returns no output.
-- Use `ConsumingTask<Input>` for the task which takes an input but returns no output. 
-- Use `ProducingTask<Output>` for the task which takes no input but returns an output. 
-- Use `TransformingTask<Input,Output>` for the task which takes an input and converts it into output.
+Use   
+- `SimpleTask` for the task which takes no input and returns no output.
+- `ConsumingTask<Input>` for the task which takes an input but returns no output. 
+- `ProducingTask<Output>` for the task which takes no input but returns an output. 
+- `TransformingTask<Input,Output>` for the task which takes an input and converts it into output.
 
 For example, consider a very straightforward scenario in which some independent data is to be fetched from remote data source via webservice, converted into csv format, written to a file, and an email is to triggered when all of this is done.<br/>
 
