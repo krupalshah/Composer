@@ -10,8 +10,7 @@ Asynchrony made simple
 
 Composer helps you to organize and execute multiple interdependent asynchronous input/output 
 tasks such as webservice calls, database read/writes 
-and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
-It is compatible with Java 8 & above on all JVM based platforms including Android.
+and file i/o together with concurrency support using `java.util.concurrent` APIs. It is compatible with Java 8 & above on all JVM based platforms including Android.
 
 Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous (except refreshing the UI) and dependent on each other.
 
