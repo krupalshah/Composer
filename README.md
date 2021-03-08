@@ -182,7 +182,7 @@ Consider a scenario where you need to fetch some posts from a service and then f
 
 ```java
 Composer.startWith(() -> service.fetchPosts(), err -> logger.error("Error executing tasks", err))
-        .thenPlayTogether(
+        .thenPlayForEachTogether(
                 response -> response.getPosts(), //provide a collection to iterate over
                 post -> service.fetchComments(post), //this task will be applied for each post in the list
                 (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a specific post
