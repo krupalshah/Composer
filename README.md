@@ -13,7 +13,7 @@ tasks such as webservice calls, database read/writes
 and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
 It is compatible with Java 8 & above on all JVM based platforms including Android.
 
-Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous(except refreshing the UI) and dependent on each other.
+Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous (except refreshing the UI) and dependent on each other.
 
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.error("Error executing tasks", err))
@@ -209,7 +209,7 @@ Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executi
 ```    
      
 #### Executing task synchronously
-By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), synchronous variants of above methods `thenWaitFor` can be used like below:
+By default, all tasks will be executed asynchronously. If you want to execute something synchronously on the same thread the method has been called (in most cases - the application main thread), `thenWaitFor` variants can be used like below:
 
 ```java
 Composer.startWith(() -> produceSomething(), err -> logger.error("Error executing tasks", err))
