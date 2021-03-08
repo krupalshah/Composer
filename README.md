@@ -20,10 +20,10 @@ Composer.startWith(currentUser.getUserId(), err -> logger.error("Error executing
         .thenExecute(userId -> { return accountService.getTwitterAccountDetails(userId); })
         .thenContinueIf(response -> response.status.isOk())
         .thenExecuteTogether(
+            Results::new,
             response -> twitterService.getTweets(response.username), 
             response -> twitterService.getMedia(response.username), 
             response -> twitterService.getFollowers(response.username), 
-            CollectedResults::new
         )
         .thenWaitFor(results -> { refreshUI(results); })
         .thenExecute(() -> { analyticsDb.trackEvent("get_twitter_details"); })
@@ -176,13 +176,13 @@ Composer.startWith(() -> service.fetchData(), err -> logger.error("Error executi
 ```
 - ##### Iterating over upstream results
 
-In the cases where an upstream output contains a collection, and you want to execute a task concurrently for each value in that collection, use `thenExecuteForEachTogether()` variants.<br/>
+In the cases where an upstream output contains a collection, and you want to execute a task concurrently for each value in that collection, use `thenExecuteForEach()` variants.<br/>
 
 Consider a scenario where you need to fetch some posts from a service and then fetch comments for each post in the response. In that case, you will need to expand the upstream response to a collection of posts, provide the task to be executed concurrently for each post and finally collect the comments grouped by posts like below:
 
 ```java
 Composer.startWith(() -> service.fetchPosts(), err -> logger.error("Error executing tasks", err))
-        .thenExecuteTogether(
+        .thenExecuteForEach(
                 response -> response.getPosts(), //provide a collection to iterate over
                 post -> service.fetchComments(post), //this task will be applied for each post in the list
                 (response, postAndComments) -> new GroupedData(postAndComments) //collector will receive results as pairs of <Post,List<Comment>> assuming that the service is retuning the list of comments for a specific post
