@@ -103,7 +103,7 @@ A `Task` can be of type
 - `ProducingTask<Output>` if it takes no input but returns an output. 
 - `TransformingTask<Input,Output>` if it takes an input and converts it into output.
 
-For example, consider a very straightforward scenario in which some independent data is to be fetched from remote data source via webservice, converted into csv format, written to a file, and an email is to triggered when all of this is done.<br/>
+Consider a very straightforward scenario in which some independent data is to be fetched from remote data source via webservice, converted into csv format, written to a file, and an email is to triggered when all of this is done.<br/>
 
 Given this information, a chain can be as written as below:
 
