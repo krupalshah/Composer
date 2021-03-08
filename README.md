@@ -18,12 +18,12 @@ Here is an example of how you can use Composer to create a chain of tasks. Consi
 ```java
 Composer.startWith(currentUser.getUserId(), err -> logger.error("Error executing tasks", err))
         .thenPlay(userId -> { return accountService.getTwitterAccountDetails(userId); })
-        .thenContinueIf(response -> response.status.isOk())
+        .thenContinueIf(response -> { return response.status.isOk(); })
         .thenPlayTogether(
-            response -> twitterService.getTweets(response.username), 
-            response -> twitterService.getMedia(response.username), 
-            response -> twitterService.getFollowers(response.username), 
-            CollectedResults::new
+            Results::new,
+            response -> { return twitterService.getTweets(response.username); }, 
+            response -> { return twitterService.getMedia(response.username); }, 
+            response -> { return twitterService.getFollowers(response.username); } 
         )
         .thenWaitFor(results -> { refreshUI(results); })
         .thenPlay(() -> { analyticsDb.trackEvent("get_twitter_details"); })
