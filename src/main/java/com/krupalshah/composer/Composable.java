@@ -63,6 +63,7 @@ public interface Composable<T> {
      * @param tasks supplier of tasks which takes an input but returns no output
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     Composable<T> thenPlayTogether(ConsumingTask<T>... tasks);
 
     /**
@@ -100,9 +101,10 @@ public interface Composable<T> {
      * @param <S>              type of task output
      * @param <R>              type of collector output
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
-     * @param tasks
+     * @param tasks            task which takes no input but produces an output of type S
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks);
 
     /**
@@ -161,9 +163,10 @@ public interface Composable<T> {
      * @param <S>              type of task output
      * @param <R>              type of collector output
      * @param resultsCollector function which takes results received from tasks as an input and collects them into a data structure/pojo
-     * @param tasks
+     * @param tasks            task which takes an input and produce an output of type S
      * @return chained composable
      */
+    @SuppressWarnings("unchecked")
     <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks);
 
     /**
