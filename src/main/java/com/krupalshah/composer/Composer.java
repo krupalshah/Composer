@@ -286,8 +286,9 @@ public class Composer<T> implements Composable<T> {
         });
     }
 
+    @SafeVarargs
     @Override
-    public <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks) {
+    public final <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, ProducingTask<S>... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
@@ -373,8 +374,9 @@ public class Composer<T> implements Composable<T> {
         });
     }
 
+    @SafeVarargs
     @Override
-    public <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks) {
+    public final <S, R> Composable<R> thenPlayTogether(Collector<T, Set<S>, R> resultsCollector, TransformingTask<T, S>... tasks) {
         return chainWith(() -> {
             T upstream = await();
             if (upstream == null) return switchTo(null);
