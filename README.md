@@ -121,9 +121,8 @@ Composable<String> myComposable = Composer.startWith(() -> service.fetchData(), 
         .thenExecute(response -> { return converter.convertToCsv(response.data); })
 
 doSomething();
-doSomethingMore();
 
-String csv = myComposable.thenExecute(csv -> { writer.writeCsvFile(csv); })
+myComposable.thenExecute(csv -> { writer.writeCsvFile(csv); })
         .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
