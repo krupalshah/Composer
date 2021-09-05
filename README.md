@@ -1,5 +1,5 @@
 # Composer
-[![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
+![example workflow](https://github.com/krupalshah/Composer/actions/workflows/release.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Composer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/8234)
 
