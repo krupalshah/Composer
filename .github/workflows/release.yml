@@ -27,7 +27,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.run_id }}
-        name: Release
+        name: v2.0.1
         gzip: false
         files: build/libs/*.jar
     - name: Cleanup Gradle Cache
