@@ -1,17 +1,14 @@
 # Composer
-Asynchrony made simple
-
-[![Build Status](https://travis-ci.com/krupalshah/Composer.svg?branch=master)](https://travis-ci.com/krupalshah/Composer)
-[![Download](https://api.bintray.com/packages/krupalshah55/Composer/Composer/images/download.svg) ](https://bintray.com/krupalshah55/Composer/Composer/_latestVersion)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7dde7d053cac44e88d762519ab50b2b1)](https://app.codacy.com/gh/krupalshah/Composer?utm_source=github.com&utm_medium=referral&utm_content=krupalshah/Composer&utm_campaign=Badge_Grade_Settings)
+![example workflow](https://github.com/krupalshah/Composer/actions/workflows/release.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Composer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/8234)
+
 
 <img src="/raw/legocomposer.jpg?raw=true" width="250" height="250"/>
 
 Composer helps you to organize and execute multiple interdependent asynchronous input/output 
 tasks such as webservice calls, database read/writes 
-and file i/o together with concurrency support using `java.util.concurrent` APIs.<br/>
-It is compatible with Java 8 & above on all JVM based platforms including Android.
+and file i/o together with concurrency support using `java.util.concurrent` APIs. It is compatible with Java 8 & above on all JVM based platforms including Android.
 
 Here is an example of how you can use Composer to create a chain of tasks. Consider a scenario where you want to get an associated Twitter account details for your app user, fetch different kinds of twitter data for that user, show them on app UI and then track the event in your analytics database. All of these tasks are asynchronous (except refreshing the UI) and dependent on each other.
 
@@ -122,9 +119,8 @@ Composable<String> myComposable = Composer.startWith(() -> service.fetchData(), 
         .thenExecute(response -> { return converter.convertToCsv(response.data); })
 
 doSomething();
-doSomethingMore();
 
-String csv = myComposable.thenExecute(csv -> { writer.writeCsvFile(csv); })
+myComposable.thenExecute(csv -> { writer.writeCsvFile(csv); })
         .thenExecute(() -> { mailer.sendEmail("All Tasks Completed"); })
         .thenFinish();
 ```
