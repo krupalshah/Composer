@@ -45,33 +45,33 @@ For detailed usage information, please refer [Getting Started](#getting-started)
 ### Setup
 - Gradle:
 ```groovy
-repositories {
-    jcenter()
+allprojects {
+        repositories {
+                ...
+                maven { url 'https://jitpack.io' }
+        }
 }
 
 dependencies {
-    implementation 'com.krupalshah:composer:2.0.1'
+        implementation 'com.github.krupalshah:Composer:2.0.1'
 }
 ```
 
 - Maven:
 ```xml
+<repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+</repositories>
+
 <dependency>
-  <groupId>com.krupalshah</groupId>
-  <artifactId>composer</artifactId>
-  <version>2.0.1</version>
-  <type>pom</type>
+    <groupId>com.github.krupalshah</groupId>
+    <artifactId>Composer</artifactId>
+    <version>2.0.1</version>
 </dependency>
 ```
-
-- Ivy:
-```xml
-<dependency org='com.krupalshah' name='composer' rev='2.0.1'>
-  <artifact name='composer' ext='pom' />
-</dependency>
-```
-Development snapshots are available in [JFrog artifactory](https://oss.jfrog.org/artifactory/webapp/#/artifacts/browse/tree/General/oss-snapshot-local/com/krupalshah/composer). 
-
 ### Getting Started
 
 #### Overview
