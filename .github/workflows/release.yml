@@ -30,6 +30,7 @@ jobs:
         name: v2.0.1
         gzip: false
         files: build/libs/*.jar
+        allow_override: true
     - name: Cleanup Gradle Cache
       # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
       # Restoring these files from a GitHub Actions cache might cause problems for future builds.
